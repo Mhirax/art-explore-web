@@ -1,5 +1,7 @@
 # Art Explore — Backend
 
+> 🛠️ Recently worked on: admin panel redesign (dashboard, institutions, forms) and CD pipeline reliability fixes.
+
 Backend API for **Art Explore**, a gallery discovery and mapping platform for Lagos. It surfaces art institutions (galleries, studios, cultural spaces) for a public frontend and provides a Super-Admin system for content management, audit logging, and dashboard metrics.
 
 > Backend only. See [`Guide.md`](./Guide.md) for the full scope and [`docs/schema.md`](./docs/schema.md) for the data model.
