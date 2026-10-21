@@ -60,12 +60,19 @@ export default function Navbar() {
         <a 
           href="#home" 
           className="logo"
+          aria-label="Art Explore — home"
           onClick={(e) => {
             e.preventDefault();  
             scrollToSection("home");  
           }}
         >
-          Art<span className="explore">Explore</span>
+          <img
+            src="/brand/artexplorelogo.png"
+            alt="Art Explore"
+            className="logo__img"
+            width="480"
+            height="136"
+          />
         </a>
 
         {/* Mobile menu button - unchanged */}
