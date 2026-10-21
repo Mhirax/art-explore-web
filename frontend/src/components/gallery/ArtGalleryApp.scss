@@ -79,22 +79,27 @@ button {
 }
 
 // ─── Search box ─────────────────────────────────────────────────
+// Brand palette (App.scss :root): raised brown surface, white type.
+// Contrast: white on --brown-lift 11.6:1, placeholder (--w-70) 6.6:1,
+// border (--w-55) 4.7:1 — all above WCAG AA.
 .search-box {
   display:     flex;
   align-items: center;
-  background:  var(--white);
-  border:      1px solid var(--border);
+  background:  var(--brown-lift);
+  border:      1px solid var(--w-55);
+
+  &:focus-within { border-color: var(--white); }
 }
 
 .search-box__input {
   flex:        1;
   border:      none;
   outline:     none;
-  background:  var(--white);
+  background:  transparent;
   padding:     15px 16px;
   font-family: var(--font);
   font-size:   17px;
-  color:       var(--ink);
+  color:       var(--white);
   min-width:   0; // prevents flex overflow on very small screens
 
   @media (max-width: 480px) {
@@ -102,10 +107,15 @@ button {
     font-size: 15px;
   }
 
-  &::placeholder          { color: var(--placeholder); font-weight: 300; }
-  &:focus                 { outline: none; box-shadow: none; background: var(--white); }
-  &:focus-visible         { outline: none; }
-  &:-webkit-autofill      { box-shadow: 0 0 0 100px var(--white) inset; }
+  &::placeholder          { color: var(--w-70); font-weight: 300; }
+  &:focus,
+  &:focus-visible         { outline: none; box-shadow: none; }
+  // Keep the brown surface when the browser autofills.
+  &:-webkit-autofill {
+    -webkit-text-fill-color: var(--white);
+    caret-color:             var(--white);
+    box-shadow:              0 0 0 100px var(--brown-lift) inset;
+  }
 }
 
 .search-box__clear {
@@ -115,10 +125,13 @@ button {
   width:           40px;
   height:          48px;
   border:          none;
-  background:      var(--white);
+  background:      transparent;
   font-size:       20px;
-  color:           var(--placeholder);
+  color:           var(--w-70);
   flex-shrink:     0;
+  transition:      color 0.25s var(--ease-out);
+
+  &:hover { color: var(--white); }
 }
 
 .search-box__icon {
@@ -128,10 +141,14 @@ button {
   width:           48px;
   height:          48px;
   border:          none;
-  border-left:     1px solid var(--border);
-  background:      var(--white);
-  color:           var(--ink);
+  border-left:     1px solid var(--w-30);
+  background:      transparent;
+  color:           var(--white);
   flex-shrink:     0;
+  transition:      background 0.3s var(--ease-out);
+
+  // Same rust the site's buttons fill with (white on rust 5.8:1).
+  &:hover { background: var(--rust); }
 
   @media (max-width: 480px) {
     width:  40px;
@@ -139,12 +156,24 @@ button {
   }
 }
 
+// Keyboard focus: the old styles removed outlines everywhere. A white
+// ring is 13.6:1 against the brown, so it is always visible.
+.search-box__clear:focus-visible,
+.search-box__icon:focus-visible,
+.tabs__tab:focus-visible,
+.chip:focus-visible,
+.sort__trigger:focus-visible,
+.sort__item:focus-visible {
+  outline:        2px solid var(--white);
+  outline-offset: -2px;
+}
+
 // ─── Tabs ────────────────────────────────────────────────────────
 .tabs {
   display:        flex;
   overflow-x:     auto;
   scrollbar-width: none;
-  border-bottom:  1px solid var(--border);
+  border-bottom:  1px solid var(--brown-edge);
   -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar { display: none; }
@@ -154,12 +183,13 @@ button {
   position:     relative;
   padding:      16px 20px 14px;
   border:       none;
-  background:   var(--white);
+  background:   transparent;
   font-family:  var(--font);
   font-size:    14px;
   font-weight:  400;
-  color:        var(--grey-text);
+  color:        var(--w-70);          // 7.5:1 on --brown
   white-space:  nowrap;
+  transition:   color 0.25s var(--ease-out);
 
   @media (max-width: 480px) {
     padding:   12px 14px;
@@ -174,29 +204,16 @@ button {
     right:      0;
     height:     2px;
     background: transparent;
+    transition: background 0.25s var(--ease-out);
   }
 
+  &:hover { color: var(--white); }
+
+  // White underline, not rust: rust on brown is only 2.3:1.
   &--active {
     font-weight: 700;
-    color:       var(--black);
-    &::after { background: var(--black); }
-  }
-
-  &:hover,
-  &:focus,
-  &:active,
-  &:focus-visible {
-    outline:    none;
-    box-shadow: none;
-    background: var(--white);
-    color:      var(--grey-text);
-  }
-
-  &--active:hover,
-  &--active:focus,
-  &--active:active {
-    color:      var(--black);
-    background: var(--white);
+    color:       var(--white);
+    &::after { background: var(--white); }
   }
 }
 
@@ -221,7 +238,7 @@ button {
 
 .filter-row__count {
   font-size: 14px;
-  color:     var(--ink);
+  color:     var(--w-70);
 
   @media (max-width: 480px) {
     font-size: 13px;
@@ -244,24 +261,27 @@ button {
   display:      inline-flex;
   align-items:  center;
   padding:      7px 14px;
-  border:       1px solid var(--border);
-  background:   var(--white);
+  border:       1px solid var(--w-55);
+  background:   transparent;
   font-family:  var(--font);
   font-size:    13px;
-  color:        var(--ink);
+  color:        var(--white);
+  transition:   background 0.25s var(--ease-out),
+                border-color 0.25s var(--ease-out);
 
   @media (max-width: 480px) {
     padding:   6px 10px;
     font-size: 12px;
   }
 
-  &:hover, &:focus, &:active { background: var(--white); color: var(--ink); outline: none; }
+  &:hover { background: var(--w-08); border-color: var(--white); }
 
+  // Selected = the site's rust fill, white text (5.8:1).
   &--on {
-    background:  var(--black);
-    border-color: var(--black);
+    background:   var(--rust);
+    border-color: var(--rust);
     color:        var(--white);
-    &:hover, &:focus, &:active { background: var(--black); color: var(--white); outline: none; }
+    &:hover { background: var(--rust); border-color: var(--white); }
   }
 }
 
@@ -273,19 +293,21 @@ button {
   align-items:  center;
   gap:          5px;
   padding:      7px 12px;
-  border:       1px solid var(--border);
-  background:   var(--white);
+  border:       1px solid var(--w-55);
+  background:   transparent;
   font-family:  var(--font);
   font-size:    13px;
-  color:        var(--ink);
+  color:        var(--white);
   white-space:  nowrap;
+  transition:   background 0.25s var(--ease-out),
+                border-color 0.25s var(--ease-out);
 
   @media (max-width: 480px) {
     font-size: 12px;
     padding:   6px 10px;
   }
 
-  &:hover, &:focus, &:active { outline: none; background: var(--white); }
+  &:hover { background: var(--w-08); border-color: var(--white); }
 }
 
 .sort__arrow {
@@ -298,12 +320,12 @@ button {
   position:   absolute;
   right:      0;
   top:        calc(100% + 4px);
-  background: var(--white);
-  border:     1px solid var(--border);
+  background: var(--brown-deep);
+  border:     1px solid var(--w-30);
   list-style: none;
   z-index:    50;
   min-width:  140px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
 }
 
 .sort__item {
@@ -315,10 +337,10 @@ button {
   background:  none;
   font-family: var(--font);
   font-size:   13px;
-  color:       var(--ink);
+  color:       var(--w-70);
 
-  &:hover { background: #f5f5f5; }
-  &--active { font-weight: 700; }
+  &:hover { background: var(--brown-lift); color: var(--white); }
+  &--active { font-weight: 700; color: var(--white); }
 }
 
 // ─── Results grid ────────────────────────────────────────────────
