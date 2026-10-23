@@ -61,12 +61,17 @@ const buildGalleriesGeoJSON = (galleryList) => ({
 });
 
 // ── SVG pin → HTMLImageElement for map.addImage() ─────────────
-const createPinImage = () =>
+// Brand map pin states (Colour Alignment PDF): terracotta with a cream
+// centre by default, light orange with an ink centre on hover.
+const PIN_DEFAULT = { body: '#b0431c', dot: '#f6efe2' };
+const PIN_HOVER   = { body: '#e0673a', dot: '#241b12' };
+
+const createPinImage = ({ body, dot }) =>
   new Promise((resolve) => {
     const svg = `
       <svg viewBox="0 0 28 38" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="38">
-        <path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 24 14 24S28 24.5 28 14C28 6.3 21.7 0 14 0z" fill="#e63946"/>
-        <circle cx="14" cy="13" r="5.5" fill="white" fill-opacity="0.92"/>
+        <path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 24 14 24S28 24.5 28 14C28 6.3 21.7 0 14 0z" fill="${body}"/>
+        <circle cx="14" cy="13" r="5.5" fill="${dot}"/>
       </svg>`;
     const img = new Image(28, 38);
     img.onload = () => resolve(img);
@@ -154,6 +159,7 @@ const MapView = () => {
     safe('island-label',          vis(layers.regionOverlays));
     safe('mainland-label',        vis(layers.regionOverlays));
     safe('gallery-pins',          vis(layers.galleries));
+    safe('gallery-pins-hover',    vis(layers.galleries));
     safe('gallery-labels',        vis(layers.galleries));
   }, []);
 
@@ -237,8 +243,12 @@ const MapView = () => {
       // Register the gallery pin image.
       // pixelRatio:2 renders it at double resolution — keep icon-size ≤ 1.4
       // on mobile or the pin becomes enormous and overflows the canvas.
-      const pinImg = await createPinImage();
+      const [pinImg, pinHoverImg] = await Promise.all([
+        createPinImage(PIN_DEFAULT),
+        createPinImage(PIN_HOVER),
+      ]);
       map.addImage('gallery-pin', pinImg, { pixelRatio: 2 });
+      map.addImage('gallery-pin-hover', pinHoverImg, { pixelRatio: 2 });
 
       // 1 ── Neighbourhood fills ─────────────────────────────
       map.addSource('neighbourhoods', { type: 'geojson', data: neighbourhoodsGeoJSON });
@@ -391,20 +401,29 @@ const MapView = () => {
       // while the API fetch is in flight); the sync effect below calls
       // setData once the live galleries arrive.
       map.addSource('galleries', { type: 'geojson', data: buildGalleriesGeoJSON(galleriesRef.current) });
+      const pinLayout = {
+        'icon-image':            'gallery-pin',
+        'icon-size':             ['interpolate', ['linear'], ['zoom'],
+                                   10, isMobile ? 0.8 : 1.0,
+                                   14, isMobile ? 1.1 : 1.2,
+                                   16, isMobile ? 1.4 : 1.5],
+        'icon-anchor':           'bottom',
+        'icon-allow-overlap':    true,
+        'icon-ignore-placement': true,
+        'text-field':            '',
+      };
       map.addLayer({
         id: 'gallery-pins', type: 'symbol', source: 'galleries',
-        layout: {
-          'icon-image':            'gallery-pin',
-          'icon-size':             ['interpolate', ['linear'], ['zoom'],
-                                     10, isMobile ? 0.8 : 1.0,
-                                     14, isMobile ? 1.1 : 1.2,
-                                     16, isMobile ? 1.4 : 1.5],
-          'icon-anchor':           'bottom',
-          'icon-allow-overlap':    true,
-          'icon-ignore-placement': true,
-          'text-field':            '',
-        },
+        layout: pinLayout,
         paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.5, 0, 9.5, 1] },
+      });
+      // Hovered pin, drawn on top in the hover colours. Icon images are
+      // layout properties, which can't read feature-state, so the hover
+      // state is a filtered copy of the pin layer.
+      map.addLayer({
+        id: 'gallery-pins-hover', type: 'symbol', source: 'galleries',
+        filter: ['==', ['get', 'id'], ''],
+        layout: { ...pinLayout, 'icon-image': 'gallery-pin-hover' },
       });
       map.addLayer({
         id: 'gallery-labels', type: 'symbol', source: 'galleries',
@@ -466,8 +485,14 @@ const MapView = () => {
         }
       });
 
-      map.on('mouseenter', 'gallery-pins', () => (map.getCanvas().style.cursor = 'pointer'));
-      map.on('mouseleave', 'gallery-pins', () => (map.getCanvas().style.cursor = ''));
+      map.on('mousemove', 'gallery-pins', (e) => {
+        map.getCanvas().style.cursor = 'pointer';
+        map.setFilter('gallery-pins-hover', ['==', ['get', 'id'], e.features[0].properties.id]);
+      });
+      map.on('mouseleave', 'gallery-pins', () => {
+        map.getCanvas().style.cursor = '';
+        map.setFilter('gallery-pins-hover', ['==', ['get', 'id'], '']);
+      });
 
       setMapReady(true);
     });

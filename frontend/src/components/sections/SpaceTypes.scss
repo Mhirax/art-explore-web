@@ -1,19 +1,20 @@
+@use '../../styles/brand' as *;
+
 // ─────────────────────────────────────────────────────────────
 // SPACE TYPES — "What kind of space"
 //
-// A deep-Terracotta band (#8F3716, a shade down from the 60%), so it
-// separates from the hero above and the Terracotta sections below
-// without breaking the palette. Cream type on it is 6.7:1.
-// Hairline gutters — the grid lines are the design.
+// Cream page ground with sand cards — the PDF's card pattern:
+// sand at rest, lifting to cream with a light orange top edge on
+// hover. Title and count in ink.
 //
-// Hover fills a cell with Ink brown from the bottom edge, the way
-// the hero buttons fill, so the whole page shares one gesture.
+// The small index label is ink while the card is sand and turns
+// terracotta once the card lifts to cream: terracotta on sand is
+// only 4.4:1 at this size, on cream it is 5.0:1.
 // ─────────────────────────────────────────────────────────────
 
 .st {
-  background: var(--brown-deep);
+  background: var(--cream);
   padding: clamp(64px, 11vh, 140px) var(--page-pad);
-  border-top: 1px solid var(--brown-edge);
 }
 
 .st__state {
@@ -21,7 +22,7 @@
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--w-55);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -35,154 +36,107 @@
 }
 
 .st__eyebrow {
-  display: flex;
-  align-items: center;
+  @include eyebrow;
   justify-content: center;
-  gap: 14px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--w-55);
   margin: 0 0 clamp(16px, 2.5vh, 26px);
 }
 
-.st__eyebrow-rule {
-  display: block;
-  width: clamp(28px, 5vw, 64px);
-  height: 1px;
-  background: var(--white);
-}
+.st__eyebrow-rule { @include eyebrow-rule; }
 
 .st__title {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: clamp(1.8rem, 4.2vw, 3.2rem);
   line-height: 1.08;
   letter-spacing: -0.025em;
-  color: var(--white);
+  color: var(--ink);
   margin: 0 0 clamp(14px, 2vh, 22px);
   text-wrap: balance;
 }
 
 .st__lede {
   font-family: var(--font-body);
-  font-weight: 300;
   font-size: clamp(0.95rem, 1.1vw, 1.05rem);
   line-height: 1.7;
-  color: var(--w-70);
+  color: var(--text-muted);
   margin: 0 auto;
   max-width: 50ch;
 }
 
 // ── Grid ───────────────────────────────────────────────────
-// 1px gap on a brown-edge ground draws the gutters for free.
 .st__grid {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
-  gap: 1px;
-  background: var(--brown-edge);
-  border: 1px solid var(--brown-edge);
+  gap: clamp(12px, 1.4vw, 20px);
 }
 
 .st__cell {
-  background: var(--brown-deep);
-  position: relative;
-  overflow: hidden;
-  transition: background 0.4s var(--ease-out);
+  display: flex;
 }
 
 .st__link {
-  position: relative;
-  z-index: 1;
+  @include card;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: clamp(28px, 3vw, 40px) clamp(22px, 2.6vw, 32px);
   min-height: 240px;
+  border-radius: 2px;
   text-align: center;
   text-decoration: none;
 }
 
-// Rust wipes up from the bottom, matching the hero buttons.
-.st__cell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--rust);
-  transform: translateY(101%);
-  transition: transform 0.55s var(--ease);
-}
-
-.st__cell:hover::before { transform: translateY(0); }
-
 // ── Cell contents ──────────────────────────────────────────
-// Sits above the count, centred with the rest of the cell, rather
-// than pinned to a corner.
 .st__index {
   display: block;
   margin-bottom: clamp(14px, 2vh, 20px);
   font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.22em;
-  color: var(--w-70);
-  transition: color 0.4s var(--ease-out);
+  color: var(--ink);
+  transition: color 0.3s var(--ease-out);
 }
 
 .st__count {
   display: block;
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   font-size: clamp(2.6rem, 5vw, 4rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
-  color: var(--white);
+  color: var(--ink);
   margin-bottom: clamp(14px, 2vh, 22px);
-  transition: color 0.4s var(--ease-out);
 }
 
 .st__label {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 700;
   font-size: clamp(1.05rem, 1.6vw, 1.3rem);
   line-height: 1.2;
   letter-spacing: -0.01em;
-  color: var(--white);
+  color: var(--ink);
   margin: 0 0 10px;
 }
 
 .st__note {
   font-family: var(--font-body);
-  font-weight: 300;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   line-height: 1.6;
-  color: var(--w-55);
+  color: var(--text-muted);
   margin: 0 auto;
   max-width: 34ch;
-  transition: color 0.4s var(--ease-out);
 }
 
-// Ink fill on hover / keyboard focus; type stays Cream (14.8:1).
-.st__cell:hover,
-.st__cell:focus-within {
-  .st__note  { color: var(--w-90); }
-}
-.st__cell:focus-within::before { transform: translateY(0); }
-.st__link:focus-visible {
-  outline: 2px solid var(--white);
-  outline-offset: -4px;
-}
+// Card lifted to cream: the label can take terracotta (5.0:1).
+.st__link:hover .st__index,
+.st__link:focus-visible .st__index { color: var(--terracotta); }
 
 @media (prefers-reduced-motion: reduce) {
-  .st__cell,
-  .st__cell::before,
-  .st__count,
-  .st__note,
+  .st__link,
   .st__index { transition: none; }
-  .st__cell:hover::before { transform: translateY(0); }
 }

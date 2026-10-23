@@ -1,14 +1,16 @@
+@use '../../styles/brand' as *;
+
 // ─────────────────────────────────────────────────────────────
-// NAVBAR — Terracotta ground (the 60%), cream type.
+// NAVBAR — "Navigation on ink" (Colour Alignment, section 02).
 //
-// Palette comes from :root in App.scss. The ground is solid, not
-// translucent: a see-through bar would pick up the hero photo as
-// it scrolls under and drag the cream links below AA contrast.
-// Cream on Terracotta is 5.0:1.
+// Ink ground, cream links (14.8:1). Hover and active take a light
+// orange underline, and hover turns the text light orange, which
+// is 4.97:1 on ink. Focus is a 2px cream outline. The ground is
+// solid so the links never pick up the hero photo underneath.
 //
 // Interactions:
-//   · links      — underline wipes in from the left on hover
-//   · logo       — tracking opens up slightly, mark rotates
+//   · links      — orange underline wipes in from the left
+//   · logo       — fades slightly
 //   · mobile     — panel slides down, links stagger in
 // ─────────────────────────────────────────────────────────────
 
@@ -16,9 +18,8 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--terracotta);
-  border-bottom: 1px solid var(--w-15);
-  // No shadow — the hairline does the work.
+  background: var(--ink);
+  border-bottom: 1px solid var(--rule-on-dark);
 
   .container {
     display: flex;
@@ -27,8 +28,7 @@
     height: 82px;
     // Same centred measure as the page sections, so the logo lines
     // up with section content rather than sitting at the viewport
-    // edge. The navbar persists on every route, so it follows the
-    // page measure, not the hero's full bleed.
+    // edge.
     max-width: none;
     padding: 0 var(--page-pad);
 
@@ -37,25 +37,22 @@
   }
 
   // ── Logo ───────────────────────────────────────────────────
-  // Real wordmark asset rather than set type. Height-driven so it
-  // scales with the bar; width follows the 480x136 aspect.
+  // Cream wordmark asset. Height-driven so it scales with the bar.
   .logo {
     display: inline-flex;
     align-items: center;
     text-decoration: none;
     line-height: 0;
+    @include focus-ring(var(--cream), 4px);
   }
 
   .logo__img {
     height: clamp(30px, 3.4vw, 42px);
     width: auto;
     display: block;
-    transition: opacity 0.3s var(--ease-out), transform 0.45s var(--ease);
+    transition: opacity 0.3s var(--ease-out);
 
-    &:hover {
-      opacity: 0.82;
-      transform: scale(1.02);
-    }
+    &:hover { opacity: 0.82; }
 
     @media (max-width: 480px) {
       height: 26px;
@@ -66,19 +63,19 @@
   .mobile-menu-btn {
     display: none;
     background: none;
-    border: 1px solid var(--w-15);
+    border: 1px solid var(--rule-on-dark);
     border-radius: 2px;
     cursor: pointer;
     padding: 8px;
-    color: var(--white);
+    color: var(--cream);
     line-height: 0;
-    transition: border-color 0.3s var(--ease-out),
-                background 0.3s var(--ease-out);
+    transition: border-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
 
     &:hover {
-      border-color: var(--white);
-      background: var(--w-08);
+      border-color: var(--orange);
+      color: var(--orange);
     }
+    @include focus-ring(var(--cream));
 
     @media (max-width: 768px) { display: block; }
   }
@@ -92,36 +89,12 @@
 
     a,
     .nav-logout {
-      position: relative;
+      @include nav-link-on-ink;
       font-family: var(--font-body);
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       letter-spacing: 0.13em;
       text-transform: uppercase;
-      text-decoration: none;
-      color: var(--w-70);
-      transition: color 0.3s var(--ease-out);
-      padding-bottom: 4px;
-
-      // Underline wipes in from the left rather than fading —
-      // reads as deliberate on a flat colour field.
-      &::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 1px;
-        background: var(--white);
-        transform: scaleX(0);
-        transform-origin: left;
-        transition: transform 0.4s var(--ease);
-      }
-
-      &:hover {
-        color: var(--white);
-        &::after { transform: scaleX(1); }
-      }
     }
 
     // ── Mobile panel ──
@@ -131,8 +104,8 @@
       top: 70px;
       left: 0;
       right: 0;
-      background: var(--terracotta);
-      border-bottom: 1px solid var(--w-15);
+      background: var(--ink);
+      border-bottom: 1px solid var(--rule-on-dark);
       flex-direction: column;
       align-items: flex-start;
       padding: 26px clamp(20px, 5vw, 40px) 32px;
@@ -178,26 +151,13 @@
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--w-70);
+    color: var(--on-dark-muted);
   }
 
   .nav-logout {
     background: none;
     border: none;
     cursor: pointer;
-    font-family: var(--font-body);
-    padding: 0 0 4px;
-  }
-
-  .nav-actions .search-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    color: var(--w-70);
-    transition: color 0.3s var(--ease-out);
-
-    &:hover { color: var(--white); }
   }
 }
 
@@ -214,7 +174,7 @@
 // Respect a reduced-motion preference — kill transforms, keep state.
 @media (prefers-reduced-motion: reduce) {
   .navbar {
-    .logo,
+    .logo__img,
     .nav-links a,
     .nav-links a::after,
     .mobile-menu-btn { transition: none; }
