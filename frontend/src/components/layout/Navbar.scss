@@ -1,8 +1,10 @@
 // ─────────────────────────────────────────────────────────────
-// NAVBAR — black ground, white type, Lato throughout.
+// NAVBAR — Terracotta ground (the 60%), cream type.
 //
-// Palette comes from :root in App.scss. No colour is declared
-// here beyond black/white/opacity, on purpose.
+// Palette comes from :root in App.scss. The ground is solid, not
+// translucent: a see-through bar would pick up the hero photo as
+// it scrolls under and drag the cream links below AA contrast.
+// Cream on Terracotta is 5.0:1.
 //
 // Interactions:
 //   · links      — underline wipes in from the left on hover
@@ -14,11 +16,9 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(14px) saturate(120%);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  background: var(--terracotta);
   border-bottom: 1px solid var(--w-15);
-  // No shadow — on black it reads as mud. The hairline does the work.
+  // No shadow — the hairline does the work.
 
   .container {
     display: flex;
@@ -95,7 +95,7 @@
       position: relative;
       font-family: var(--font-body);
       font-size: 13px;
-      font-weight: 400;
+      font-weight: 500;
       letter-spacing: 0.13em;
       text-transform: uppercase;
       text-decoration: none;
@@ -104,7 +104,7 @@
       padding-bottom: 4px;
 
       // Underline wipes in from the left rather than fading —
-      // reads as deliberate on a flat black field.
+      // reads as deliberate on a flat colour field.
       &::after {
         content: '';
         position: absolute;
@@ -131,9 +131,7 @@
       top: 70px;
       left: 0;
       right: 0;
-      background: rgba(0, 0, 0, 0.96);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      background: var(--terracotta);
       border-bottom: 1px solid var(--w-15);
       flex-direction: column;
       align-items: flex-start;
@@ -180,7 +178,7 @@
     font-size: 12px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--w-50);
+    color: var(--w-70);
   }
 
   .nav-logout {

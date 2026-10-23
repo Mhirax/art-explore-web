@@ -1,38 +1,71 @@
 // ─────────────────────────────────────────────────────────────
-// THEME — Art Explore brand palette.
+// THEME — Art Explore brand palette, 60 / 30 / 10.
 //
-// Source of truth: Art Explore Website Wireframes/
-//   brand_assets_art_explore/BRAND_GUIDE.md
+// Source of truth: Art-explore-web-design-agreed.docx
 //
-// Deep Brown is the ground, not pure black: it is a warm,
-// earthen dark that reads as West African rather than generic
-// tech-dark. White type sits on it; Rust Red is the single
-// accent and is rationed deliberately.
+//   60%  Terracotta  #B0431C  dominant — navbar, hero, grounds
+//   30%  Cream       #F6EFE2  secondary — type, buttons, light bands
+//   10%  Ink brown   #241B12  tertiary — footer, hover fills, rules
 //
-// The guide forbids recolouring outside this palette and
-// forbids shadows and glows. Depth comes from warm tints of
-// the brown and from hairline rules.
+// Choices made inside the brief ("pick one of the two for 60% and
+// 30%"): Terracotta over Light orange for the 60%, because cream
+// type on Terracotta clears WCAG AA (5.0:1) and on Light orange it
+// does not (3.0:1). Cream over Sand for the 30% for the same reason
+// — it is the lighter of the two, so it gives the most contrast.
+//
+// Light orange #E0673A is kept as a small spark, and ONLY ever on
+// ink brown (5.0:1) — never behind cream text, never on terracotta
+// (1.7:1, it disappears).
+//
+// Contrast rules that fall out of the numbers:
+//   cream on terracotta   5.0:1  ok for all text
+//   ink on cream         14.8:1  ok
+//   ink on terracotta     2.9:1  FAILS — ink is a fill/border here,
+//                                never text
+//
+// The existing token names are kept (--brown, --white, --rust …) so
+// every stylesheet that already reads them re-themes in one place.
+// The names are historical: --brown now resolves to Terracotta and
+// --white to Cream.
 // ─────────────────────────────────────────────────────────────
 :root {
-  // Brand core
-  --brown:      #402820;   // primary surface
-  --rust:       #b83808;   // accent — links, actives, highlights
-  --ink:        #241812;   // deepest brown, for wells behind content
-  --paper:      #faf7f4;   // light surface
-  --white:      #ffffff;
+  // Brand palette, by name.
+  --terracotta: #b0431c;
+  --orange:     #e0673a;
+  --cream:      #f6efe2;
+  --ink-brown:  #241b12;
 
-  // Warm darks, mixed from the brown rather than toward grey.
-  --brown-deep: #33201a;
-  --brown-lift: #4d322a;   // raised surface (cards)
-  --brown-edge: #5c3d33;   // hairline rules
+  // Semantic tokens read by the rest of the site.
+  --brown:      #b0431c;   // 60% — primary surface (Terracotta)
+  --rust:       #241b12;   // accent: fills, rules, hovers (Ink brown)
+  --ink:        #241b12;   // deepest well (footer, ticker)
+  --paper:      #f6efe2;   // light surface (Cream)
+  --white:      #f6efe2;   // 30% — type + button faces (Cream)
 
-  // White at decreasing opacity, for type hierarchy.
-  --w-90:       rgba(255, 255, 255, 0.90);
-  --w-70:       rgba(255, 255, 255, 0.70);
-  --w-55:       rgba(255, 255, 255, 0.55);
-  --w-30:       rgba(255, 255, 255, 0.30);
-  --w-15:       rgba(255, 255, 255, 0.15);
-  --w-08:       rgba(255, 255, 255, 0.08);
+  // Tints of Terracotta. Raised surfaces go DARKER, not lighter:
+  // cream on a lighter terracotta drops under AA (4.2:1).
+  --brown-deep: #8f3716;   // alt ground, 6.7:1 with cream
+  --brown-lift: #9c3c18;   // raised surface (cards), 6.1:1
+  --brown-edge: #c87a5a;   // hairline rules
+
+  // Cream at decreasing opacity, for type hierarchy. Tuned for the
+  // Terracotta ground: --w-90 / 70 / 55 all stay at or above 4.5:1
+  // there, so small copy is still legible. Hierarchy comes from
+  // size and weight as much as from opacity.
+  --w-90:       rgba(246, 239, 226, 0.98);
+  --w-70:       rgba(246, 239, 226, 0.95);
+  --w-55:       rgba(246, 239, 226, 0.93);
+  --w-30:       rgba(246, 239, 226, 0.55);
+  --w-15:       rgba(246, 239, 226, 0.30);
+  --w-08:       rgba(246, 239, 226, 0.14);
+
+  // Ink at decreasing opacity — the same ladder for the Cream bands.
+  // --i-60 is 4.3:1 on cream, so use it for large or decorative
+  // type only; body copy on cream uses --i-78.
+  --i-100:      #241b12;
+  --i-78:       rgba(36, 27, 18, 0.78);
+  --i-60:       rgba(36, 27, 18, 0.60);
+  --i-15:       rgba(36, 27, 18, 0.15);
 
   // Type. Poppins is the brand web substitute for Canva Sans.
   // Lato is reserved for the navbar logo lockup.
@@ -58,16 +91,16 @@
 }
 
 // Mirrors for the pre-existing rules further down this file.
-$brown: #402820;
-$rust: #b83808;
-$white: #ffffff;
-$primary-color: #b83808;
-$primary-dark: #8f2b06;
-$secondary-color: #402820;
-$text-dark: #ffffff;
-$text-light: rgba(255, 255, 255, 0.7);
-$bg-light: #402820;
-$border-color: rgba(255, 255, 255, 0.15);
+$brown: #b0431c;
+$rust: #241b12;
+$white: #f6efe2;
+$primary-color: #241b12;
+$primary-dark: #000000;
+$secondary-color: #241b12;
+$text-dark: #f6efe2;
+$text-light: rgba(246, 239, 226, 0.95);
+$bg-light: #b0431c;
+$border-color: rgba(246, 239, 226, 0.3);
 $shadow-sm: none;
 $shadow-md: none;
 $shadow-lg: none;

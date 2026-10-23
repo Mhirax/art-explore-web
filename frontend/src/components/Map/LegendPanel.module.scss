@@ -227,15 +227,15 @@ $c-muted:   #64748b;
 .zoomGuide {
   margin:        8px 14px;
   padding:       10px 12px;
-  background:    #f0f9ff;
+  background:    #f6efe2;
   border-radius: 8px;
-  border:        1px solid #bae6fd;
+  border:        1px solid rgba(176,67,28,0.3);
 }
 
 .zoomGuideTitle {
   font-size:      10px;
   font-weight:    700;
-  color:          #0284c7;
+  color:          #b0431c;
   margin:         0 0 6px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -246,14 +246,14 @@ $c-muted:   #64748b;
   align-items:   center;
   gap:           8px;
   font-size:     11px;
-  color:         #0369a1;
+  color:         #8f3716;
   margin-bottom: 3px;
 
   &:last-child { margin-bottom: 0; }
 }
 
 .zoomLevel {
-  background:    #0284c7;
+  background:    #b0431c;
   color:         white;
   width:         24px;
   height:        16px;

@@ -1,12 +1,16 @@
 // ─────────────────────────────────────────────────────────────
-// HERO — full-bleed monumental type.
+// HERO — full-bleed monumental type over an image carousel.
 //
-// Palette and type come from :root in App.scss, which follows
-// BRAND_GUIDE.md. Nothing here introduces a colour outside the
-// brand palette, and there are no shadows or glows.
+// Palette and type come from :root in App.scss (60/30/10 —
+// Terracotta / Cream / Ink brown). No shadows or glows.
 //
-// Structure (vertical, three bands):
+// Layers (back to front):
+//   .ht__slides  — crossfading venue photographs
+//   .ht__wash    — Terracotta gradient over them. Heaviest on the
+//                  left where the copy sits, lighter on the right
+//                  so the photograph still reads as a photograph.
 //   .ht__inner   — the headline. Owns the page.
+//   .ht__reel    — photo credit + slide picker
 //   .ht__ticker  — fixed-height marquee, always on screen.
 // ─────────────────────────────────────────────────────────────
 
@@ -17,20 +21,68 @@ $ticker-h: 64px;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--navbar-h, 82px));
-  background: var(--brown);
+  background: var(--brown);   // shows while the first photo loads
   overflow: hidden;
 
-  // Warm vertical settling toward the deepest brown at the base,
-  // so the filmstrip has something to sit against. Still in palette.
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, var(--brown) 0%, var(--brown-deep) 100%);
-    pointer-events: none;
-  }
-
   > * { position: relative; z-index: 1; }
+}
+
+// ── Background carousel ────────────────────────────────────────────────
+.ht > .ht__slides,
+.ht > .ht__wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ht__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.04);
+  // Slow push-in while a frame is on screen (restrained Ken Burns).
+  transition: opacity 1.4s var(--ease-out), transform 7s linear;
+
+  &--on {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+// The wash tints the photographs Terracotta without hiding them.
+// It is deliberately light: the photo should read as a photo.
+//
+// Legibility is carried by a soft Ink-brown scrim underneath the
+// Terracotta, strongest behind the headline and the paragraph
+// (left and bottom) and gone on the right, rather than by burying
+// the whole frame. Ink is in the brand palette, so the image stays
+// warm instead of going grey. The headline is large type (3:1 is
+// enough); the small paragraph sits in the darkest part of the scrim.
+.ht__wash {
+  background:
+    // Terracotta tint, fading toward the right so the art shows
+    linear-gradient(
+      90deg,
+      rgba(176, 67, 28, 0.62) 0%,
+      rgba(176, 67, 28, 0.42) 45%,
+      rgba(176, 67, 28, 0.16) 100%
+    ),
+    // Ink scrim behind the copy: left edge and bottom
+    linear-gradient(90deg, rgba(36, 27, 18, 0.50) 0%, rgba(36, 27, 18, 0.22) 50%, rgba(36, 27, 18, 0) 85%),
+    linear-gradient(180deg, rgba(36, 27, 18, 0) 45%, rgba(36, 27, 18, 0.58) 100%);
+
+  // Narrow screens stack the copy across the full width, so the
+  // clear right-hand side goes; use an even wash across the frame.
+  @media (max-width: 760px) {
+    background:
+      linear-gradient(180deg, rgba(176, 67, 28, 0.5) 0%, rgba(176, 67, 28, 0.4) 100%),
+      linear-gradient(180deg, rgba(36, 27, 18, 0.35) 0%, rgba(36, 27, 18, 0.6) 100%);
+  }
 }
 
 // ══ ZONE 1 — MONUMENTAL TYPE ═════════════════════════════════
@@ -60,7 +112,7 @@ $ticker-h: 64px;
   display: block;
   width: clamp(28px, 5vw, 64px);
   height: 1px;
-  background: var(--rust);
+  background: var(--white);
   transform-origin: left;
   animation: htRule 0.9s var(--ease) 0.1s both;
 }
@@ -96,7 +148,7 @@ $ticker-h: 64px;
 // the eye lands on "ART GALLERIES" first.
 .ht__line:last-child .ht__line-inner {
   color: transparent;
-  -webkit-text-stroke: 1.5px var(--w-30);
+  -webkit-text-stroke: 1.5px var(--white);
 
   @media (max-width: 600px) {
     -webkit-text-stroke-width: 1px;
@@ -229,8 +281,64 @@ $ticker-h: 64px;
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--rust);
+  background: var(--orange);   // the spark colour, used only on ink
   flex: 0 0 auto;
+}
+
+// ══ REEL — photo credit + slide picker ═════════════════════════════
+.ht__reel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 clamp(20px, 4vw, 56px) 14px;
+}
+
+.ht__credit {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--w-70);
+  margin: 0;
+}
+
+.ht__dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+// The visible dot is 8px, the hit area is 24px — easy to tap.
+.ht__dot {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    border-radius: 50%;
+    border: 1px solid var(--white);
+    transition: background 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  }
+
+  &:hover::before { transform: scale(1.25); }
+  &--on::before   { background: var(--white); }
+
+  &:focus-visible {
+    outline: 2px solid var(--white);
+    outline-offset: -2px;
+  }
 }
 
 // ══ Keyframes ════════════════════════════════════════════════
@@ -273,6 +381,10 @@ $ticker-h: 64px;
   .ht__meta { animation: none; }
 
   .ht__ticker-track { animation: none; }
+
+  .ht__slide,
+  .ht__slide--on { transition: opacity 0.01s; transform: none; }
+  .ht__dot::before { transition: none; }
 
   .ht__btn,
   .ht__btn::before { transition: none; }
