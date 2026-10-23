@@ -1,14 +1,23 @@
+@use '../../styles/brand' as *;
+
 // ─────────────────────────────────────────────────────────────
 // HERO — full-bleed monumental type over an image carousel.
 //
-// Palette and type come from :root in App.scss (60/30/10 —
-// Terracotta / Cream / Ink brown). No shadows or glows.
+// Colour roles (Colour Alignment PDF):
+//   · the photographs sit under an Ink scrim, so all type is cream
+//     on ink — the approved 14.8:1 pairing, not cream on a photo
+//   · "Open map" is the primary button (terracotta, the colour
+//     people click); "Browse galleries" is the secondary, mirrored
+//     for a dark ground
+//   · light orange appears only as marks: the eyebrow rule and the
+//     ticker dots
+//   · "in Lagos" is set in Instrument Serif Italic, the accent face
 //
 // Layers (back to front):
 //   .ht__slides  — crossfading venue photographs
-//   .ht__wash    — Terracotta gradient over them. Heaviest on the
-//                  left where the copy sits, lighter on the right
-//                  so the photograph still reads as a photograph.
+//   .ht__wash    — Ink scrim, heaviest behind the copy (left and
+//                  bottom), lighter on the right so the photograph
+//                  still reads as a photograph
 //   .ht__inner   — the headline. Owns the page.
 //   .ht__reel    — photo credit + slide picker
 //   .ht__ticker  — fixed-height marquee, always on screen.
@@ -21,7 +30,8 @@ $ticker-h: 64px;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--navbar-h, 82px));
-  background: var(--brown);   // shows while the first photo loads
+  background: var(--ink);   // shows while the first photo loads
+  color: var(--on-dark);
   overflow: hidden;
 
   > * { position: relative; z-index: 1; }
@@ -54,34 +64,17 @@ $ticker-h: 64px;
   }
 }
 
-// The wash tints the photographs Terracotta without hiding them.
-// It is deliberately light: the photo should read as a photo.
-//
-// Legibility is carried by a soft Ink-brown scrim underneath the
-// Terracotta, strongest behind the headline and the paragraph
-// (left and bottom) and gone on the right, rather than by burying
-// the whole frame. Ink is in the brand palette, so the image stays
-// warm instead of going grey. The headline is large type (3:1 is
-// enough); the small paragraph sits in the darkest part of the scrim.
+// Ink scrim. Strongest behind the headline and paragraph, gone on
+// the right. Ink is warm, so the photographs stay warm.
 .ht__wash {
   background:
-    // Terracotta tint, fading toward the right so the art shows
-    linear-gradient(
-      90deg,
-      rgba(176, 67, 28, 0.62) 0%,
-      rgba(176, 67, 28, 0.42) 45%,
-      rgba(176, 67, 28, 0.16) 100%
-    ),
-    // Ink scrim behind the copy: left edge and bottom
-    linear-gradient(90deg, rgba(36, 27, 18, 0.50) 0%, rgba(36, 27, 18, 0.22) 50%, rgba(36, 27, 18, 0) 85%),
-    linear-gradient(180deg, rgba(36, 27, 18, 0) 45%, rgba(36, 27, 18, 0.58) 100%);
+    linear-gradient(90deg, rgba(36, 27, 18, 0.86) 0%, rgba(36, 27, 18, 0.62) 45%, rgba(36, 27, 18, 0.2) 100%),
+    linear-gradient(180deg, rgba(36, 27, 18, 0) 45%, rgba(36, 27, 18, 0.7) 100%);
 
   // Narrow screens stack the copy across the full width, so the
-  // clear right-hand side goes; use an even wash across the frame.
+  // clear right-hand side goes; use an even scrim across the frame.
   @media (max-width: 760px) {
-    background:
-      linear-gradient(180deg, rgba(176, 67, 28, 0.5) 0%, rgba(176, 67, 28, 0.4) 100%),
-      linear-gradient(180deg, rgba(36, 27, 18, 0.35) 0%, rgba(36, 27, 18, 0.6) 100%);
+    background: linear-gradient(180deg, rgba(36, 27, 18, 0.72) 0%, rgba(36, 27, 18, 0.86) 100%);
   }
 }
 
@@ -95,24 +88,13 @@ $ticker-h: 64px;
 }
 
 .ht__eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--w-55);
+  @include eyebrow(var(--on-dark-muted));
   margin-bottom: clamp(18px, 3vh, 34px);
   animation: htFade 0.8s var(--ease) both;
 }
 
 .ht__eyebrow-rule {
-  display: block;
-  width: clamp(28px, 5vw, 64px);
-  height: 1px;
-  background: var(--white);
+  @include eyebrow-rule;
   transform-origin: left;
   animation: htRule 0.9s var(--ease) 0.1s both;
 }
@@ -121,13 +103,13 @@ $ticker-h: 64px;
 // leading, tight tracking — this is the whole layout.
 .ht__headline {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 800;
   // Scales from phone to ultrawide without a media query.
-  font-size: clamp(2.9rem, 11.2vw, 11rem);
+  font-size: clamp(2.9rem, 10.6vw, 10.5rem);
   line-height: 0.92;
   letter-spacing: -0.035em;
   text-transform: uppercase;
-  color: var(--white);
+  color: var(--on-dark);
   margin: 0;
 }
 
@@ -136,7 +118,7 @@ $ticker-h: 64px;
 .ht__line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.04em;   // room for descenders inside the mask
+  padding-bottom: 0.06em;   // room for descenders inside the mask
 }
 
 .ht__line-inner {
@@ -144,15 +126,14 @@ $ticker-h: 64px;
   animation: htRise 1s var(--ease) both;
 }
 
-// Third line is the quiet one — outlined rather than filled, so
-// the eye lands on "ART GALLERIES" first.
+// Third line is the accent: Instrument Serif Italic, sentence case,
+// so the eye lands on "ART GALLERIES" first.
 .ht__line:last-child .ht__line-inner {
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--white);
-
-  @media (max-width: 600px) {
-    -webkit-text-stroke-width: 1px;
-  }
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: -0.01em;
 }
 
 .ht__meta {
@@ -163,7 +144,7 @@ $ticker-h: 64px;
   gap: clamp(20px, 4vw, 56px);
   margin-top: clamp(24px, 4vh, 44px);
   padding-top: clamp(20px, 3vh, 32px);
-  border-top: 1px solid var(--brown-edge);
+  border-top: 1px solid var(--rule-on-dark);
   animation: htFade 0.9s var(--ease) 0.5s both;
 }
 
@@ -171,10 +152,9 @@ $ticker-h: 64px;
   flex: 1 1 320px;
   max-width: 54ch;
   font-family: var(--font-body);
-  font-weight: 300;
   font-size: clamp(0.95rem, 1.15vw, 1.1rem);
   line-height: 1.65;
-  color: var(--w-70);
+  color: var(--on-dark-muted);
   margin: 0;
 }
 
@@ -185,54 +165,11 @@ $ticker-h: 64px;
 }
 
 // ── Buttons ────────────────────────────────────────────────
-// Rust fill wipes up from the bottom on hover. No glow.
 .ht__btn {
-  position: relative;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 15px 30px;
-  border-radius: 2px;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--rust);
-    transform: translateY(101%);
-    transition: transform 0.5s var(--ease);
-    z-index: -1;
-  }
-
-  > * { position: relative; }
-
-  &:hover::before { transform: translateY(0); }
-
-  &--solid {
-    background: var(--white);
-    color: var(--brown);
-    border: 1px solid var(--white);
-    isolation: isolate;
-
-    &:hover { color: var(--white); border-color: var(--rust); }
-  }
+  &--solid { @include btn-primary(var(--cream)); }
 
   &--ghost {
-    background: transparent;
-    color: var(--white);
-    border: 1px solid var(--brown-edge);
-    isolation: isolate;
-
-    &:hover { color: var(--white); border-color: var(--rust); }
+    @include btn-secondary-on-dark;
 
     svg { transition: transform 0.4s var(--ease); }
     &:hover svg { transform: translateX(5px); }
@@ -247,7 +184,7 @@ $ticker-h: 64px;
   align-items: center;
   overflow: hidden;
   background: var(--ink);
-  border-top: 1px solid var(--brown-edge);
+  border-top: 1px solid var(--rule-on-dark);
 }
 
 .ht__ticker-track {
@@ -266,22 +203,21 @@ $ticker-h: 64px;
   white-space: nowrap;
   font-family: var(--font-body);
   font-size: 11px;
-  font-weight: 300;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--w-55);
+  color: var(--on-dark-muted);
 
   strong {
-    font-weight: 600;
-    color: var(--white);
+    font-weight: 700;
+    color: var(--on-dark);
   }
 }
 
 .ht__ticker-dot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--orange);   // the spark colour, used only on ink
+  background: var(--orange);
   flex: 0 0 auto;
 }
 
@@ -299,7 +235,7 @@ $ticker-h: 64px;
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--w-70);
+  color: var(--on-dark-muted);
   margin: 0;
 }
 
@@ -328,17 +264,14 @@ $ticker-h: 64px;
     height: 8px;
     margin: -4px 0 0 -4px;
     border-radius: 50%;
-    border: 1px solid var(--white);
+    border: 1px solid var(--cream);
     transition: background 0.3s var(--ease-out), transform 0.3s var(--ease-out);
   }
 
-  &:hover::before { transform: scale(1.25); }
-  &--on::before   { background: var(--white); }
+  &:hover::before { transform: scale(1.25); background: var(--orange); border-color: var(--orange); }
+  &--on::before   { background: var(--cream); }
 
-  &:focus-visible {
-    outline: 2px solid var(--white);
-    outline-offset: -2px;
-  }
+  @include focus-ring(var(--cream), -2px);
 }
 
 // ══ Keyframes ════════════════════════════════════════════════
@@ -369,7 +302,7 @@ $ticker-h: 64px;
     align-items: stretch;
   }
   .ht__cta { width: 100%; }
-  .ht__btn { flex: 1 1 auto; justify-content: center; }
+  .ht__btn { flex: 1 1 auto; }
 }
 
 // ── Reduced motion ─────────────────────────────────────────
@@ -387,5 +320,5 @@ $ticker-h: 64px;
   .ht__dot::before { transition: none; }
 
   .ht__btn,
-  .ht__btn::before { transition: none; }
+  .ht__btn svg { transition: none; }
 }
