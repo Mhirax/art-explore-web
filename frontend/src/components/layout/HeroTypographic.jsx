@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./HeroTypographic.scss";
 
@@ -11,6 +12,19 @@ import "./HeroTypographic.scss";
 // independently on load. Keep lines short — they are set at a
 // display scale and need to survive narrow viewports.
 const HEADLINE = ["Discover", "Art Galleries", "in Lagos"];
+
+// Background slides. These are real photographs of Lagos venues
+// already in the repo (public/uploads/institutions), copied to
+// public/images/hero. `place` doubles as the credit line, so the
+// photo is never anonymous.
+const SLIDES = [
+  { src: "/images/hero/quintessence.jpg", place: "Quintessence Gallery", pos: "50% 40%" },
+  { src: "/images/hero/smo.jpg", place: "SMO Contemporary Art", pos: "50% 55%" },
+  { src: "/images/hero/tiwani.webp", place: "Tiwani Contemporary", pos: "50% 50%" },
+  { src: "/images/hero/ko-art-space.webp", place: "kó Art Space", pos: "50% 45%" },
+  { src: "/images/hero/arthouse.jpg", place: "Arthouse Contemporary", pos: "50% 35%" },
+];
+const SLIDE_MS = 6000;
 
 const TICKER_ITEMS = [
   { title: "Studio", place: "Yaba" },
@@ -38,8 +52,44 @@ const ArrowIcon = () => (
 
 // ── Component ─────────────────────────────────────────────────
 export default function HeroTypographic() {
+  const [slide, setSlide] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  // Autoplay. Never runs for visitors who ask for reduced motion, and
+  // skips ticks while the tab is hidden so it is not cycling unseen.
+  useEffect(() => {
+    if (paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => {
+      if (document.hidden) return;
+      setSlide((i) => (i + 1) % SLIDES.length);
+    }, SLIDE_MS);
+    return () => clearInterval(id);
+  }, [paused]);
+
   return (
     <section className="ht" id="home" aria-label="Discover art galleries in Lagos">
+      {/* BACKGROUND — image carousel under a Terracotta wash.
+          Decorative: the headline carries the meaning, so the
+          images are aria-hidden with empty alt text. */}
+      <div className="ht__slides" aria-hidden="true">
+        {SLIDES.map((s, i) => (
+          <img
+            key={s.src}
+            className={`ht__slide${i === slide ? " ht__slide--on" : ""}`}
+            src={s.src}
+            alt=""
+            style={{ objectPosition: s.pos }}
+            // The first frame blocks render so the hero is never
+            // blank; the rest load as the visitor reads.
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchPriority={i === 0 ? "high" : "auto"}
+            decoding="async"
+          />
+        ))}
+      </div>
+      <div className="ht__wash" aria-hidden="true" />
+
       {/* ══════════════════════════════════════════════════════
           ZONE 1 — MONUMENTAL TYPE
           Full-bleed. The headline is the layout; everything else
@@ -77,6 +127,29 @@ export default function HeroTypographic() {
               Browse Galleries <ArrowIcon />
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Slide controls — credit the photo, let the visitor pick one. */}
+      <div
+        className="ht__reel"
+        onPointerEnter={() => setPaused(true)}
+        onPointerLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
+      >
+        <p className="ht__credit">Photo — {SLIDES[slide].place}</p>
+        <div className="ht__dots" role="group" aria-label="Choose a background photo">
+          {SLIDES.map((s, i) => (
+            <button
+              key={s.src}
+              type="button"
+              className={`ht__dot${i === slide ? " ht__dot--on" : ""}`}
+              aria-label={`Show photo ${i + 1} of ${SLIDES.length}: ${s.place}`}
+              aria-pressed={i === slide}
+              onClick={() => setSlide(i)}
+            />
+          ))}
         </div>
       </div>
 

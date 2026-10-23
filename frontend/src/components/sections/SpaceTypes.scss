@@ -1,12 +1,13 @@
 // ─────────────────────────────────────────────────────────────
 // SPACE TYPES — "What kind of space"
 //
-// A grid of wells cut into the deepest brown, with hairline
-// gutters — the grid lines are the design. The header is centred
-// over it, matching Popular Reviews and the map.
+// A deep-Terracotta band (#8F3716, a shade down from the 60%), so it
+// separates from the hero above and the Terracotta sections below
+// without breaking the palette. Cream type on it is 6.7:1.
+// Hairline gutters — the grid lines are the design.
 //
-// Hover fills a cell with rust from the bottom edge, the way the
-// hero buttons fill, so the whole page shares one gesture.
+// Hover fills a cell with Ink brown from the bottom edge, the way
+// the hero buttons fill, so the whole page shares one gesture.
 // ─────────────────────────────────────────────────────────────
 
 .st {
@@ -51,7 +52,7 @@
   display: block;
   width: clamp(28px, 5vw, 64px);
   height: 1px;
-  background: var(--rust);
+  background: var(--white);
 }
 
 .st__title {
@@ -129,7 +130,7 @@
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.22em;
-  color: var(--w-30);
+  color: var(--w-70);
   transition: color 0.4s var(--ease-out);
 }
 
@@ -140,7 +141,7 @@
   font-size: clamp(2.6rem, 5vw, 4rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
-  color: var(--rust);
+  color: var(--white);
   margin-bottom: clamp(14px, 2vh, 22px);
   transition: color 0.4s var(--ease-out);
 }
@@ -166,12 +167,15 @@
   transition: color 0.4s var(--ease-out);
 }
 
-// On a rust ground the accent-coloured numeral would vanish, so
-// the count flips to white and the body copy opens up.
-.st__cell:hover {
-  .st__count { color: var(--white); }
+// Ink fill on hover / keyboard focus; type stays Cream (14.8:1).
+.st__cell:hover,
+.st__cell:focus-within {
   .st__note  { color: var(--w-90); }
-  .st__index { color: var(--w-70); }
+}
+.st__cell:focus-within::before { transform: translateY(0); }
+.st__link:focus-visible {
+  outline: 2px solid var(--white);
+  outline-offset: -4px;
 }
 
 @media (prefers-reduced-motion: reduce) {

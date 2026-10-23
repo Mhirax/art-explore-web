@@ -1,7 +1,7 @@
 import Navbar from '../layout/Navbar.jsx';
 import Herosection3 from '../layout/HeroTypographic.jsx';
 import SpaceTypes from '../sections/SpaceTypes.jsx';
-import PopularReviews from '../sections/PopularReviews.jsx';
+import PopularGalleries from '../sections/PopularGalleries.jsx';
 import Mapheader from '../Map/LagosMap.jsx';
 import MapView from '../Map/MapView.jsx';
 import '../../App.jsx';
@@ -10,7 +10,7 @@ import '../../App.jsx';
  * Home — read top to bottom as a numbered guide to the city:
  *   01  Hero        — what this is
  *   02  Space types — what you are walking into
- *   03  Reviews     — what visitors said
+ *   03  The range   — popular venues, by kind of space
  *   04  Map         — see it laid out
  *
  * The full searchable directory lives on its own route, /galleries,
@@ -22,7 +22,7 @@ function App() {
       <Navbar />
       <Herosection3 />
       <SpaceTypes />
-      <PopularReviews />
+      <PopularGalleries />
       <Mapheader />
       <MapView />
 

@@ -67,11 +67,11 @@ export default function Navbar() {
           }}
         >
           <img
-            src="/brand/artexplorelogo.png"
+            src="/brand/wordmark-cream.png"
             alt="Art Explore"
             className="logo__img"
-            width="480"
-            height="136"
+            width="842"
+            height="216"
           />
         </a>
 

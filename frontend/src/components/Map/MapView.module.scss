@@ -44,7 +44,7 @@ $font:       'Inter', 'Segoe UI', system-ui, sans-serif;
   @media (max-width: 768px) {
     gap:             8px;
     padding:         10px 12px;
-    background:      rgba(51, 32, 26, 0.96);
+    background:      rgba(36, 27, 18, 0.96);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     position:        sticky;
@@ -363,7 +363,7 @@ $font:       'Inter', 'Segoe UI', system-ui, sans-serif;
   }
 
   .maplibregl-ctrl-attrib {
-    background: rgba(36, 24, 18, 0.72);
+    background: rgba(36, 27, 18, 0.72);
     color:      var(--w-30);
 
     a { color: var(--w-55); }
