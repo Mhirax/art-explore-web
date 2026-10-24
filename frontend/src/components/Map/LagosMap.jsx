@@ -27,21 +27,6 @@ export default function MapSection() {
           co-ordinates. Filter by side of the lagoon, tap a pin for the address,
           then let your phone do the rest.
         </p>
-
-        <ul className="map-section__hints">
-          <li>
-            <span>Island or Mainland</span>
-            Narrow the map to one side of the water.
-          </li>
-          <li>
-            <span>Tap a pin</span>
-            Address, opening hours and a route out.
-          </li>
-          <li>
-            <span>Overview</span>
-            Pull back to the whole city at any time.
-          </li>
-        </ul>
       </div>
     </section>
   );

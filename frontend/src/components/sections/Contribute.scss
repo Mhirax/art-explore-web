@@ -1,0 +1,65 @@
+@use '../../styles/brand' as *;
+
+// ─────────────────────────────────────────────────────────────
+// CONTRIBUTE — "Are we missing a gallery?"
+//
+// Sand band between the cream map section and the ink footer.
+// Ink type; "a gallery?" is the accent in Instrument Serif Italic,
+// set in ink rather than terracotta because terracotta text on
+// sand is only 4.4:1. The one action is the primary button.
+// ─────────────────────────────────────────────────────────────
+
+.ct {
+  background: var(--sand);
+  padding: clamp(64px, 11vh, 140px) var(--page-pad);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ct__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 4.6vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 0 0 clamp(14px, 2vh, 22px);
+  text-wrap: balance;
+
+  em {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+}
+
+.ct__lede {
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 1.1vw, 1.05rem);
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin: 0 auto clamp(24px, 4vh, 36px);
+  max-width: 48ch;
+}
+
+.ct__btn {
+  @include btn-primary;
+
+  svg { transition: transform 0.4s var(--ease); }
+  &:hover svg { transform: translateX(5px); }
+}
+
+.ct__note {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 14px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ct__btn,
+  .ct__btn svg { transition: none; }
+}

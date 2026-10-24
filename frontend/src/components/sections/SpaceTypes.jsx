@@ -4,8 +4,8 @@ import { useGalleries } from "../../hooks/useGalleries";
 import "./SpaceTypes.scss";
 
 /**
- * "What kind of space" — the nine InstitutionType values, named in
- * plain language and counted from live data.
+ * "What kind of space" — four InstitutionType values, named in plain
+ * language and counted from live data, laid out as a 2×2 grid.
  *
  * A visitor who has never been to a Lagos gallery does not know the
  * difference between a hub, a foundation and a nomadic space. This
@@ -16,7 +16,8 @@ import "./SpaceTypes.scss";
  * Types with no entries in the database are not rendered.
  */
 
-// Keyed to prisma/schema.prisma → enum InstitutionType.
+// Keyed to prisma/schema.prisma → enum InstitutionType. Only these four
+// kinds are shown, to keep the grid a clean two-by-two.
 // Order is editorial: most walk-in-able first.
 const TYPES = [
   {
@@ -35,34 +36,9 @@ const TYPES = [
     note: "Mixed programmes — talks, screenings, residencies. Check what is on before you go.",
   },
   {
-    key: "FOUNDATION",
-    label: "Foundations",
-    note: "Privately funded, programme-led. Often by appointment rather than open daily.",
-  },
-  {
-    key: "INSTITUTE",
-    label: "Institutes",
-    note: "Teaching and research spaces that also exhibit. Term-time rhythms.",
-  },
-  {
-    key: "STUDIO",
-    label: "Studios",
-    note: "Where the work is made. Visits are arranged, not assumed.",
-  },
-  {
-    key: "CULTURAL_SPACE",
-    label: "Cultural spaces",
-    note: "Performance, music and craft alongside visual art. Evening-heavy.",
-  },
-  {
     key: "NOMADIC_SPACE",
     label: "Nomadic spaces",
     note: "No fixed address. They appear for a show, then move on.",
-  },
-  {
-    key: "ART_FESTIVAL",
-    label: "Festivals",
-    note: "Dated, city-wide, temporary. Worth planning a trip around.",
   },
 ];
 
@@ -100,10 +76,6 @@ export default function SpaceTypes() {
   return (
     <section className="st" id="types" aria-label="Browse by kind of space">
       <header className="st__head">
-        <p className="st__eyebrow">
-          <span className="st__eyebrow-rule" aria-hidden="true" />
-          02 — What kind of space
-        </p>
         <h2 className="st__title">Not everything with art on the wall is a gallery.</h2>
         <p className="st__lede">
           {total} spaces, sorted by what they actually are — because it changes whether

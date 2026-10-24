@@ -15,8 +15,7 @@ const HEADLINE = ["Discover", "Art Galleries", "in Lagos"];
 
 // Background slides. These are real photographs of Lagos venues
 // already in the repo (public/uploads/institutions), copied to
-// public/images/hero. `place` doubles as the credit line, so the
-// photo is never anonymous.
+// public/images/hero. `place` names the venue in each photo.
 const SLIDES = [
   { src: "/images/hero/quintessence.jpg", place: "Quintessence Gallery", pos: "50% 40%" },
   { src: "/images/hero/smo.jpg", place: "SMO Contemporary Art", pos: "50% 55%" },
@@ -53,23 +52,21 @@ const ArrowIcon = () => (
 // ── Component ─────────────────────────────────────────────────
 export default function HeroTypographic() {
   const [slide, setSlide] = useState(0);
-  const [paused, setPaused] = useState(false);
 
   // Autoplay. Never runs for visitors who ask for reduced motion, and
   // skips ticks while the tab is hidden so it is not cycling unseen.
   useEffect(() => {
-    if (paused) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => {
       if (document.hidden) return;
       setSlide((i) => (i + 1) % SLIDES.length);
     }, SLIDE_MS);
     return () => clearInterval(id);
-  }, [paused]);
+  }, []);
 
   return (
     <section className="ht" id="home" aria-label="Discover art galleries in Lagos">
-      {/* BACKGROUND — image carousel under a Terracotta wash.
+      {/* BACKGROUND — image carousel under an Ink scrim.
           Decorative: the headline carries the meaning, so the
           images are aria-hidden with empty alt text. */}
       <div className="ht__slides" aria-hidden="true">
@@ -127,29 +124,6 @@ export default function HeroTypographic() {
               Browse Galleries <ArrowIcon />
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Slide controls — credit the photo, let the visitor pick one. */}
-      <div
-        className="ht__reel"
-        onPointerEnter={() => setPaused(true)}
-        onPointerLeave={() => setPaused(false)}
-        onFocusCapture={() => setPaused(true)}
-        onBlurCapture={() => setPaused(false)}
-      >
-        <p className="ht__credit">Photo — {SLIDES[slide].place}</p>
-        <div className="ht__dots" role="group" aria-label="Choose a background photo">
-          {SLIDES.map((s, i) => (
-            <button
-              key={s.src}
-              type="button"
-              className={`ht__dot${i === slide ? " ht__dot--on" : ""}`}
-              aria-label={`Show photo ${i + 1} of ${SLIDES.length}: ${s.place}`}
-              aria-pressed={i === slide}
-              onClick={() => setSlide(i)}
-            />
-          ))}
         </div>
       </div>
 

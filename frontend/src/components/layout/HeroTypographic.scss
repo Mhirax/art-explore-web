@@ -19,7 +19,6 @@
 //                  bottom), lighter on the right so the photograph
 //                  still reads as a photograph
 //   .ht__inner   — the headline. Owns the page.
-//   .ht__reel    — photo credit + slide picker
 //   .ht__ticker  — fixed-height marquee, always on screen.
 // ─────────────────────────────────────────────────────────────
 
@@ -221,59 +220,6 @@ $ticker-h: 64px;
   flex: 0 0 auto;
 }
 
-// ══ REEL — photo credit + slide picker ═════════════════════════════
-.ht__reel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 clamp(20px, 4vw, 56px) 14px;
-}
-
-.ht__credit {
-  font-family: var(--font-body);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--on-dark-muted);
-  margin: 0;
-}
-
-.ht__dots {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-// The visible dot is 8px, the hit area is 24px — easy to tap.
-.ht__dot {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 8px;
-    height: 8px;
-    margin: -4px 0 0 -4px;
-    border-radius: 50%;
-    border: 1px solid var(--cream);
-    transition: background 0.3s var(--ease-out), transform 0.3s var(--ease-out);
-  }
-
-  &:hover::before { transform: scale(1.25); background: var(--orange); border-color: var(--orange); }
-  &--on::before   { background: var(--cream); }
-
-  @include focus-ring(var(--cream), -2px);
-}
-
 // ══ Keyframes ════════════════════════════════════════════════
 @keyframes htRise {
   from { transform: translateY(104%); }
@@ -300,7 +246,12 @@ $ticker-h: 64px;
   .ht__meta {
     flex-direction: column;
     align-items: stretch;
+    gap: 20px;
   }
+  // In a column, the 320px flex-basis above becomes a minimum
+  // height and leaves a tall empty gap above the buttons. Size the
+  // paragraph to its text so the buttons sit right beneath it.
+  .ht__desc { flex: 0 0 auto; }
   .ht__cta { width: 100%; }
   .ht__btn { flex: 1 1 auto; }
 }
@@ -317,7 +268,6 @@ $ticker-h: 64px;
 
   .ht__slide,
   .ht__slide--on { transition: opacity 0.01s; transform: none; }
-  .ht__dot::before { transition: none; }
 
   .ht__btn,
   .ht__btn svg { transition: none; }
