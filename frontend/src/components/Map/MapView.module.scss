@@ -126,7 +126,7 @@
   border:        1px solid var(--rule);
   border-radius: 2px;
   overflow:      hidden;
-  background:    var(--ink);   // the basemap is dark; no flash of cream
+  background:    var(--sand);  // close to the light basemap while tiles load
   min-height:    0; // flex child must shrink below content height
 
   @media (max-width: 768px) {

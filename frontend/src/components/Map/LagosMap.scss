@@ -6,7 +6,7 @@
 // Cream ground, ink type, set at display scale to match the hero.
 // "directions?" is the accent: Instrument Serif Italic in
 // terracotta — terracotta on cream (5.0:1) is approved for
-// headings. The usage hints sit on sand, sand's divider role.
+// headings.
 // ─────────────────────────────────────────────────────────────
 
 .map-section {
@@ -55,38 +55,4 @@
   color: var(--text-muted);
   margin: 0 auto;
   max-width: 58ch;
-}
-
-// ── Usage hints ────────────────────────────────────────────
-// Three columns telling the visitor what the controls do, so the
-// map isn't a puzzle on first contact.
-.map-section__hints {
-  list-style: none;
-  margin: clamp(32px, 5vh, 56px) 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-
-  li {
-    background: var(--sand);
-    padding: clamp(18px, 2.4vw, 26px);
-    font-family: var(--font-body);
-    font-size: 0.875rem;
-    line-height: 1.6;
-    color: var(--text-muted);
-    text-align: center;
-
-    span {
-      display: block;
-      font-weight: 700;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--ink);
-      margin-bottom: 8px;
-    }
-  }
 }

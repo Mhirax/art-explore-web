@@ -4,6 +4,7 @@ import SpaceTypes from '../sections/SpaceTypes.jsx';
 import PopularGalleries from '../sections/PopularGalleries.jsx';
 import Mapheader from '../Map/LagosMap.jsx';
 import MapView from '../Map/MapView.jsx';
+import Contribute from '../sections/Contribute.jsx';
 import '../../App.jsx';
 
 /**
@@ -12,6 +13,7 @@ import '../../App.jsx';
  *   02  Space types — what you are walking into
  *   03  The range   — popular venues, by kind of space
  *   04  Map         — see it laid out
+ *   05  Contribute  — add a space that's missing (links to /submit)
  *
  * The full searchable directory lives on its own route, /galleries,
  * reached from the "Galleries" nav link.
@@ -25,6 +27,7 @@ function App() {
       <PopularGalleries />
       <Mapheader />
       <MapView />
+      <Contribute />
 
       <footer className="site-footer">
         <div className="site-footer__inner">

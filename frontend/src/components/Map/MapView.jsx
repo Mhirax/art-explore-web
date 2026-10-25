@@ -206,7 +206,7 @@ const MapView = () => {
 
     const map = new maplibregl.Map({
       container:          mapContainer.current,
-      style:              `https://api.maptiler.com/maps/streets-v2-dark/style.json?key=${MAPTILER_KEY}`,
+      style:              `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${MAPTILER_KEY}`,
       center:             isMobile
                             ? [galleriesRef.current[2]?.lng || 3.4004, galleriesRef.current[2]?.lat || 6.5083]
                             : ALL_GALLERIES_CENTER,
@@ -282,7 +282,7 @@ const MapView = () => {
         },
         paint: {
           'text-color':      ['get', 'color'],
-          'text-halo-color': 'rgba(255,255,255,0.9)',
+          'text-halo-color': 'rgba(246,239,226,0.9)',
           'text-halo-width': 2,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 9.5, 0, 10.5, 1],
         },
@@ -317,8 +317,8 @@ const MapView = () => {
           'text-anchor': 'center',
         },
         paint: {
-          'text-color':      '#6ee7a0',
-          'text-halo-color': 'rgba(36,24,18,0.9)',
+          'text-color':      '#15803d',
+          'text-halo-color': 'rgba(246,239,226,0.9)',
           'text-halo-width': 2,
         },
       });
@@ -351,8 +351,8 @@ const MapView = () => {
           'text-max-width': 10,
         },
         paint: {
-          'text-color':      'rgba(255,255,255,0.88)',
-          'text-halo-color': 'rgba(36,24,18,0.92)',
+          'text-color':      'rgba(36,27,18,0.78)',
+          'text-halo-color': 'rgba(246,239,226,0.92)',
           'text-halo-width': 1.5,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 1],
         },
@@ -388,12 +388,12 @@ const MapView = () => {
       map.addLayer({
         id: 'island-label', type: 'symbol', source: 'island-region', maxzoom: 11,
         layout: { 'text-field': 'ISLAND',   'text-size': 12, 'text-letter-spacing': 0.2, 'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Bold'] },
-        paint:  { 'text-color': '#7fb0ff', 'text-halo-color': 'rgba(36,24,18,0.9)', 'text-halo-width': 2 },
+        paint:  { 'text-color': '#1a6bbd', 'text-halo-color': 'rgba(246,239,226,0.9)', 'text-halo-width': 2 },
       });
       map.addLayer({
         id: 'mainland-label', type: 'symbol', source: 'mainland-region', maxzoom: 11,
         layout: { 'text-field': 'MAINLAND', 'text-size': 12, 'text-letter-spacing': 0.2, 'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Bold'] },
-        paint:  { 'text-color': '#e89a52',  'text-halo-color': 'rgba(36,24,18,0.9)', 'text-halo-width': 2 },
+        paint:  { 'text-color': '#b45309',  'text-halo-color': 'rgba(246,239,226,0.9)', 'text-halo-width': 2 },
       });
 
       // 5 ── Gallery pins ────────────────────────────────────
@@ -438,8 +438,8 @@ const MapView = () => {
           'text-allow-overlap': false,
         },
         paint: {
-          'text-color':      '#ffffff',
-          'text-halo-color': 'rgba(36,24,18,0.95)',
+          'text-color':      '#241b12',
+          'text-halo-color': 'rgba(246,239,226,0.95)',
           'text-halo-width': 2.5,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 1],
         },
