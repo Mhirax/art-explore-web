@@ -211,43 +211,4 @@ img {
   to { transform: rotate(360deg); }
 }
 
-// ── Footer ─────────────────────────────────────────────────
-// Ink, like the header: ink's role covers header and footer.
-.site-footer {
-  background: var(--ink);
-  padding: clamp(48px, 8vh, 96px) var(--page-pad);
-}
-
-.site-footer__inner {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.site-footer__mark {
-  font-family: var(--font-logo);
-  font-weight: 900;
-  font-size: clamp(18px, 2vw, 22px);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--on-dark);
-  margin: 0;
-
-  span { font-weight: 300; letter-spacing: 0.18em; }
-}
-
-.site-footer__line {
-  font-family: var(--font-body);
-  color: var(--on-dark-muted);
-  margin: 0;
-  max-width: 48ch;
-}
-
-.site-footer__legal {
-  font-family: var(--font-body);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--on-dark-muted);
-  margin: 0;
-}
+// Footer styles live in components/layout/Footer.scss.

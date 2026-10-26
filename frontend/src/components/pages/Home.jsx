@@ -1,47 +1,44 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../layout/Navbar.jsx';
 import Herosection3 from '../layout/HeroTypographic.jsx';
-import SpaceTypes from '../sections/SpaceTypes.jsx';
 import PopularGalleries from '../sections/PopularGalleries.jsx';
 import Mapheader from '../Map/LagosMap.jsx';
 import MapView from '../Map/MapView.jsx';
 import Contribute from '../sections/Contribute.jsx';
+import Footer from '../layout/Footer.jsx';
 import '../../App.jsx';
 
 /**
- * Home — read top to bottom as a numbered guide to the city:
- *   01  Hero        — what this is
- *   02  Space types — what you are walking into
- *   03  The range   — popular venues, by kind of space
- *   04  Map         — see it laid out
- *   05  Contribute  — add a space that's missing (links to /submit)
+ * Home — read top to bottom as a guide to the city:
+ *   Hero        — what this is
+ *   The range   — popular venues, by kind of space
+ *   Map         — see it laid out
+ *   Contribute  — suggest a space that's missing (inline form)
  *
  * The full searchable directory lives on its own route, /galleries,
  * reached from the "Galleries" nav link.
  */
 function App() {
+  const { hash } = useLocation();
+
+  // Footer links such as /#map arrive here from other routes; scroll to
+  // the section once it has mounted.
+  useEffect(() => {
+    if (!hash) return;
+    document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
+
   return (
     <div className="app">
       <Navbar />
       <Herosection3 />
-      <SpaceTypes />
       <PopularGalleries />
       <Mapheader />
       <MapView />
       <Contribute />
 
-      <footer className="site-footer">
-        <div className="site-footer__inner">
-          <p className="site-footer__mark">
-            Art<span>Explore</span>
-          </p>
-          <p className="site-footer__line">
-            Galleries, museums and cultural spaces across Lagos — mapped.
-          </p>
-          <p className="site-footer__legal">
-            &copy; {new Date().getFullYear()} Art Explore. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
