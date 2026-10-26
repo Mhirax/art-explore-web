@@ -10,16 +10,14 @@ import "./PopularGalleries.scss";
  * The earlier version was a slider of six hand-picked rooms, which
  * told a visitor nothing about what else is out there. This one is
  * organised by kind of space: pick Galleries, Museums, Hubs … and the
- * panel below features that kind's best-known venue as one large
- * photographic card. The tab row itself carries the range (each kind
- * and how many of it exist), and the card carries the neighbourhood.
+ * panel below shows that kind's best-known venues — one large feature
+ * and up to three companions. The tab row itself carries the range
+ * (each kind and how many of it exist), and the cards carry the
+ * neighbourhood, so the Island/Mainland spread is visible too.
  *
  * Everything is read from the live institution list. A kind only gets
  * a tab if it has at least one venue with a photo, so it fills out on
  * its own as the data grows and never shows an empty panel.
- *
- * Kinds use the same `type` keys as the "What kind of space" section
- * above it, so the two sections never disagree about a count.
  */
 
 const KINDS = [
@@ -46,6 +44,8 @@ const PREFERRED = [
   "Terra Kulture",
   "Kalakuta Museum",
 ];
+
+const PER_KIND = 4; // 1 feature + 3 companions
 
 const Arrow = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -118,9 +118,9 @@ export default function PopularGalleries() {
       return {
         ...k,
         total: all.length,
-        feature: all.filter((g) => g.image).sort(rank)[0],
+        picks: all.filter((g) => g.image).sort(rank).slice(0, PER_KIND),
       };
-    }).filter((k) => k.feature);
+    }).filter((k) => k.picks.length > 0);
   }, [galleries]);
 
   const total = galleries.length;
@@ -144,14 +144,14 @@ export default function PopularGalleries() {
   // Falls back to the first kind until the visitor picks one, and
   // if the picked kind disappears on a reload.
   const active = kinds.find((k) => k.key === activeKey) ?? kinds[0];
-  const { feature } = active;
+  const [feature, ...rest] = active.picks;
 
   return (
     <section className="pg" id="popular" aria-label="Popular galleries by kind of space">
       <header className="pg__head">
         <h2 className="pg__title">Popular galleries, and everything around them.</h2>
         <p className="pg__lede">
-          {total} spaces across {kinds.length} kinds. Pick one to see the room
+          {total} spaces across {kinds.length} kinds. Pick one to see the rooms
           people go to first.
         </p>
       </header>
@@ -181,26 +181,45 @@ export default function PopularGalleries() {
         id="pg-panel"
         role="tabpanel"
         aria-labelledby={`pg-tab-${active.key}`}
-        // Re-keyed so the card re-animates when the kind changes.
+        // Re-keyed so the cards re-animate when the kind changes.
         key={active.key}
       >
         <p className="pg__blurb">{active.blurb}</p>
 
-        <Link className="pg__feature" to="/galleries">
-          <Photo venue={feature} />
-          <span className="pg__feature-body">
-            <span className="pg__kicker">
-              {active.label} · <Place venue={feature} />
+        <div className={`pg__grid${rest.length === 0 ? " pg__grid--solo" : ""}`}>
+          <Link className="pg__feature" to="/galleries">
+            <Photo venue={feature} />
+            <span className="pg__feature-body">
+              <span className="pg__kicker">
+                {active.label} · <Place venue={feature} />
+              </span>
+              <span className="pg__name">{feature.name}</span>
+              {feature.description && (
+                <span className="pg__desc">{feature.description}</span>
+              )}
+              <span className="pg__more">
+                See it in the directory <Arrow />
+              </span>
             </span>
-            <span className="pg__name">{feature.name}</span>
-            {feature.description && (
-              <span className="pg__desc">{feature.description}</span>
-            )}
-            <span className="pg__more">
-              See it in the directory <Arrow />
-            </span>
-          </span>
-        </Link>
+          </Link>
+
+          {rest.map((v) => (
+            <Link className="pg__mini" to="/galleries" key={v.id}>
+              <span className="pg__mini-thumb">
+                <Photo venue={v} />
+              </span>
+              <span className="pg__mini-body">
+                <span className="pg__kicker">
+                  <Place venue={v} />
+                </span>
+                <span className="pg__mini-name">{v.name}</span>
+              </span>
+              <span className="pg__mini-go" aria-hidden="true">
+                <Arrow />
+              </span>
+            </Link>
+          ))}
+        </div>
 
         <Link className="pg__all" to="/galleries">
           Browse all {active.total} {active.label.toLowerCase()} <Arrow />

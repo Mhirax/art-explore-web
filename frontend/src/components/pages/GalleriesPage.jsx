@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Navbar from "../layout/Navbar.jsx";
 import ArtGalleryApp from "../gallery/ArtGalleryApp.jsx";
+import Footer from "../layout/Footer.jsx";
 import "./GalleriesPage.scss";
 
 /**
@@ -36,19 +37,7 @@ export default function GalleriesPage() {
 
       <ArtGalleryApp />
 
-      <footer className="site-footer">
-        <div className="site-footer__inner">
-          <p className="site-footer__mark">
-            Art<span>Explore</span>
-          </p>
-          <p className="site-footer__line">
-            Galleries, museums and cultural spaces across Lagos — mapped.
-          </p>
-          <p className="site-footer__legal">
-            &copy; {new Date().getFullYear()} Art Explore. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
