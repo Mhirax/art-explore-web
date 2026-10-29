@@ -18,9 +18,6 @@ import "./PopularGalleries.scss";
  * Everything is read from the live institution list. A kind only gets
  * a tab if it has at least one venue with a photo, so it fills out on
  * its own as the data grows and never shows an empty panel.
- *
- * Kinds use the same `type` keys as the "What kind of space" section
- * above it, so the two sections never disagree about a count.
  */
 
 const KINDS = [
@@ -152,10 +149,6 @@ export default function PopularGalleries() {
   return (
     <section className="pg" id="popular" aria-label="Popular galleries by kind of space">
       <header className="pg__head">
-        <p className="pg__eyebrow">
-          <span className="pg__eyebrow-rule" aria-hidden="true" />
-          03 — The range
-        </p>
         <h2 className="pg__title">Popular galleries, and everything around them.</h2>
         <p className="pg__lede">
           {total} spaces across {kinds.length} kinds. Pick one to see the rooms

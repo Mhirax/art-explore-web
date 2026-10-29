@@ -41,14 +41,6 @@
   text-align: center;
 }
 
-.pg__eyebrow {
-  @include eyebrow(var(--ink));
-  justify-content: center;
-  margin: 0 0 clamp(16px, 2.5vh, 26px);
-}
-
-.pg__eyebrow-rule { @include eyebrow-rule; }
-
 .pg__title {
   font-family: var(--font-display);
   font-weight: 700;
