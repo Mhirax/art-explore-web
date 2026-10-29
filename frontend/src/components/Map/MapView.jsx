@@ -27,7 +27,11 @@ const LAYER_DEFAULTS = {
 const ZOOM = { overview: 11, district: 12, street: 14, detail: 16 };
 
 const FIT_PADDING        = { top: 100, bottom: 60,  left: 60,  right: 280 };
-const FIT_PADDING_MOBILE = { top: 60,  bottom: 140, left: 24,  right: 24  };
+// Mobile: top clears the sticky filter bar, which overlaps the map once
+// scrolled to; bottom clears the layers toggle and zoom buttons. The old
+// 140px bottom reserved room for a bottom sheet that is closed whenever a
+// region is fitted, and squeezed Lagos into a strip.
+const FIT_PADDING_MOBILE = { top: 116, bottom: 72,  left: 24,  right: 24  };
 
 // Peek sheet occupies 20vh of screen height on mobile.
 // flyToGallery shifts the map centre upward so the marker lands
@@ -35,6 +39,28 @@ const FIT_PADDING_MOBILE = { top: 60,  bottom: 140, left: 24,  right: 24  };
 // We subtract ~48px for the region bar above the map container
 // so the offset is accurate to the actual visible map zone.
 // Calculated at runtime so it works across all phone sizes.
+// Bounds around a region's main cluster, for fitting on a phone. A few
+// venues sit far out (Badagry, Lekki–Ajah); fitting to them shrinks the
+// cluster where most venues are to a speck on a narrow screen. Points
+// outside the usual 1.5×IQR fences are left out of the fit — their pins
+// still render, the visitor just pans to them.
+const coreBounds = (points) => {
+  const fences = (values) => {
+    const s = [...values].sort((a, b) => a - b);
+    const q = (p) => s[Math.floor(p * (s.length - 1))];
+    const iqr = q(0.75) - q(0.25);
+    return [q(0.25) - 1.5 * iqr, q(0.75) + 1.5 * iqr];
+  };
+  const [lngLo, lngHi] = fences(points.map((p) => p.lng));
+  const [latLo, latHi] = fences(points.map((p) => p.lat));
+  const core = points.filter(
+    (p) => p.lng >= lngLo && p.lng <= lngHi && p.lat >= latLo && p.lat <= latHi,
+  );
+  const bounds = new maplibregl.LngLatBounds();
+  (core.length ? core : points).forEach((p) => bounds.extend([p.lng, p.lat]));
+  return bounds;
+};
+
 const getMobileOffset = () => {
   const regionBarPx  = 48; // approx height of the filter bar above the map
   const visibleMapPx = window.innerHeight * 0.80 - regionBarPx;
@@ -61,12 +87,17 @@ const buildGalleriesGeoJSON = (galleryList) => ({
 });
 
 // ── SVG pin → HTMLImageElement for map.addImage() ─────────────
-const createPinImage = () =>
+// Brand map pin states (Colour Alignment PDF): terracotta with a cream
+// centre by default, light orange with an ink centre on hover.
+const PIN_DEFAULT = { body: '#b0431c', dot: '#f6efe2' };
+const PIN_HOVER   = { body: '#e0673a', dot: '#241b12' };
+
+const createPinImage = ({ body, dot }) =>
   new Promise((resolve) => {
     const svg = `
       <svg viewBox="0 0 28 38" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="38">
-        <path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 24 14 24S28 24.5 28 14C28 6.3 21.7 0 14 0z" fill="#e63946"/>
-        <circle cx="14" cy="13" r="5.5" fill="white" fill-opacity="0.92"/>
+        <path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 24 14 24S28 24.5 28 14C28 6.3 21.7 0 14 0z" fill="${body}"/>
+        <circle cx="14" cy="13" r="5.5" fill="${dot}"/>
       </svg>`;
     const img = new Image(28, 38);
     img.onload = () => resolve(img);
@@ -154,6 +185,7 @@ const MapView = () => {
     safe('island-label',          vis(layers.regionOverlays));
     safe('mainland-label',        vis(layers.regionOverlays));
     safe('gallery-pins',          vis(layers.galleries));
+    safe('gallery-pins-hover',    vis(layers.galleries));
     safe('gallery-labels',        vis(layers.galleries));
   }, []);
 
@@ -184,6 +216,10 @@ const MapView = () => {
 
       if (region === 'All') {
         map.fitBounds(ALL_BOUNDS, { padding, duration: 800 });
+      } else if (isMobileRef.current) {
+        if (filtered.length) {
+          map.fitBounds(coreBounds(filtered), { padding, maxZoom: 13, duration: 800 });
+        }
       } else {
         const bounds = new maplibregl.LngLatBounds();
         filtered.forEach((g) => bounds.extend([g.lng, g.lat]));
@@ -198,22 +234,37 @@ const MapView = () => {
     const isMobile = window.innerWidth <= 768;
     isMobileRef.current = isMobile;
 
+    // Mobile opens on the same Lagos overview as desktop. It used to start
+    // at street level (zoom 16) with a zoom-out floor of 14, so the region
+    // buttons' fitBounds could never zoom out far enough to show the pins.
     const map = new maplibregl.Map({
       container:          mapContainer.current,
-      style:              `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
-      center:             isMobile
-                            ? [galleriesRef.current[2]?.lng || 3.4004, galleriesRef.current[2]?.lat || 6.5083]
-                            : ALL_GALLERIES_CENTER,
-      zoom:               isMobile ? 16 : 10,
-      minZoom:            isMobile ? 14 : 9,
-      maxBounds:          isMobile ? null : [[2.9, 6.1], [3.9, 6.9]],
+      style:              `https://api.maptiler.com/maps/streets-v2-light/style.json?key=${MAPTILER_KEY}`,
+      ...(isMobile
+        ? { bounds: ALL_BOUNDS, fitBoundsOptions: { padding: FIT_PADDING_MOBILE } }
+        : { center: ALL_GALLERIES_CENTER, zoom: 10 }),
+      minZoom:            9,
+      // Mobile reaches a little further west so Badagry (lng 2.889) can be
+      // panned to; desktop keeps its original box.
+      maxBounds:          isMobile ? [[2.7, 6.1], [3.95, 6.9]] : [[2.9, 6.1], [3.9, 6.9]],
       attributionControl: false,
     });
 
     mapRef.current = map;
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    // Mobile: zoom buttons at the bottom — the sticky filter bar covers
+    // the top of the map once the visitor scrolls to it.
+    map.addControl(
+      new maplibregl.NavigationControl({ showCompass: false }),
+      isMobile ? 'bottom-right' : 'top-right',
+    );
+
+    // The mobile container settles at its full height (100svh) after the
+    // map has measured it, which left the canvas short and threw fitBounds
+    // off-centre. Re-measure whenever the container changes size.
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(mapContainer.current);
 
     // Fallback placeholder for any missing sprite icons
     map.on('styleimagemissing', (e) => {
@@ -222,7 +273,7 @@ const MapView = () => {
         const canvas = document.createElement('canvas');
         canvas.width = 24; canvas.height = 24;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#4a5568';
+        ctx.fillStyle = '#5c3d33';
         ctx.beginPath(); ctx.arc(12, 12, 10, 0, 2 * Math.PI); ctx.fill();
         ctx.fillStyle = 'white'; ctx.font = '14px sans-serif';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -237,8 +288,12 @@ const MapView = () => {
       // Register the gallery pin image.
       // pixelRatio:2 renders it at double resolution — keep icon-size ≤ 1.4
       // on mobile or the pin becomes enormous and overflows the canvas.
-      const pinImg = await createPinImage();
+      const [pinImg, pinHoverImg] = await Promise.all([
+        createPinImage(PIN_DEFAULT),
+        createPinImage(PIN_HOVER),
+      ]);
       map.addImage('gallery-pin', pinImg, { pixelRatio: 2 });
+      map.addImage('gallery-pin-hover', pinHoverImg, { pixelRatio: 2 });
 
       // 1 ── Neighbourhood fills ─────────────────────────────
       map.addSource('neighbourhoods', { type: 'geojson', data: neighbourhoodsGeoJSON });
@@ -272,7 +327,7 @@ const MapView = () => {
         },
         paint: {
           'text-color':      ['get', 'color'],
-          'text-halo-color': 'rgba(255,255,255,0.9)',
+          'text-halo-color': 'rgba(246,239,226,0.9)',
           'text-halo-width': 2,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 9.5, 0, 10.5, 1],
         },
@@ -290,7 +345,7 @@ const MapView = () => {
         id: 'green-zone-fill', type: 'fill', source: 'green-zones',
         paint: {
           'fill-color':   '#16a34a',
-          'fill-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.08, 14, 0.18],
+          'fill-opacity': ['interpolate', ['linear'], ['zoom'], 10, 0.10, 14, 0.22],
         },
       });
       map.addLayer({
@@ -308,7 +363,7 @@ const MapView = () => {
         },
         paint: {
           'text-color':      '#15803d',
-          'text-halo-color': 'rgba(255,255,255,0.85)',
+          'text-halo-color': 'rgba(246,239,226,0.9)',
           'text-halo-width': 2,
         },
       });
@@ -323,7 +378,7 @@ const MapView = () => {
         id: 'landmark-icon', type: 'symbol', source: 'landmarks',
         minzoom: 11,
         layout: {
-          'text-field':         '📍',
+          'text-field':         '●',
           'text-size':          ['interpolate', ['linear'], ['zoom'], 11, 14, 14, 20],
           'text-allow-overlap': false,
         },
@@ -341,8 +396,8 @@ const MapView = () => {
           'text-max-width': 10,
         },
         paint: {
-          'text-color':      '#374151',
-          'text-halo-color': 'rgba(255,255,255,0.92)',
+          'text-color':      'rgba(36,27,18,0.78)',
+          'text-halo-color': 'rgba(246,239,226,0.92)',
           'text-halo-width': 1.5,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 1],
         },
@@ -373,17 +428,17 @@ const MapView = () => {
         type: 'geojson',
         data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[[3.2,6.48],[3.46,6.48],[3.46,6.66],[3.2,6.66]]] } },
       });
-      map.addLayer({ id: 'island-overlay',   type: 'fill', source: 'island-region',   paint: { 'fill-color': '#0c50bd', 'fill-opacity': 0.04 } });
-      map.addLayer({ id: 'mainland-overlay', type: 'fill', source: 'mainland-region', paint: { 'fill-color': '#92400e', 'fill-opacity': 0.04 } });
+      map.addLayer({ id: 'island-overlay',   type: 'fill', source: 'island-region',   paint: { 'fill-color': '#0c50bd', 'fill-opacity': 0.10 } });
+      map.addLayer({ id: 'mainland-overlay', type: 'fill', source: 'mainland-region', paint: { 'fill-color': '#92400e', 'fill-opacity': 0.10 } });
       map.addLayer({
         id: 'island-label', type: 'symbol', source: 'island-region', maxzoom: 11,
         layout: { 'text-field': 'ISLAND',   'text-size': 12, 'text-letter-spacing': 0.2, 'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Bold'] },
-        paint:  { 'text-color': '#1d4ed8', 'text-halo-color': 'rgba(255,255,255,0.8)', 'text-halo-width': 2 },
+        paint:  { 'text-color': '#1a6bbd', 'text-halo-color': 'rgba(246,239,226,0.9)', 'text-halo-width': 2 },
       });
       map.addLayer({
         id: 'mainland-label', type: 'symbol', source: 'mainland-region', maxzoom: 11,
         layout: { 'text-field': 'MAINLAND', 'text-size': 12, 'text-letter-spacing': 0.2, 'text-font': ['Open Sans SemiBold', 'Arial Unicode MS Bold'] },
-        paint:  { 'text-color': '#b45309',  'text-halo-color': 'rgba(255,255,255,0.8)', 'text-halo-width': 2 },
+        paint:  { 'text-color': '#b45309',  'text-halo-color': 'rgba(246,239,226,0.9)', 'text-halo-width': 2 },
       });
 
       // 5 ── Gallery pins ────────────────────────────────────
@@ -391,20 +446,31 @@ const MapView = () => {
       // while the API fetch is in flight); the sync effect below calls
       // setData once the live galleries arrive.
       map.addSource('galleries', { type: 'geojson', data: buildGalleriesGeoJSON(galleriesRef.current) });
+      const pinLayout = {
+        'icon-image':            'gallery-pin',
+        // Mobile pins stay compact at the overview zoom so dozens of
+        // venues don't pile into one blob, and grow as you zoom in.
+        'icon-size':             ['interpolate', ['linear'], ['zoom'],
+                                   10, isMobile ? 0.9 : 1.0,
+                                   14, isMobile ? 1.15 : 1.2,
+                                   16, isMobile ? 1.35 : 1.5],
+        'icon-anchor':           'bottom',
+        'icon-allow-overlap':    true,
+        'icon-ignore-placement': true,
+        'text-field':            '',
+      };
       map.addLayer({
         id: 'gallery-pins', type: 'symbol', source: 'galleries',
-        layout: {
-          'icon-image':            'gallery-pin',
-          'icon-size':             ['interpolate', ['linear'], ['zoom'],
-                                     10, isMobile ? 0.8 : 1.0,
-                                     14, isMobile ? 1.1 : 1.2,
-                                     16, isMobile ? 1.4 : 1.5],
-          'icon-anchor':           'bottom',
-          'icon-allow-overlap':    true,
-          'icon-ignore-placement': true,
-          'text-field':            '',
-        },
+        layout: pinLayout,
         paint: { 'icon-opacity': ['interpolate', ['linear'], ['zoom'], 8.5, 0, 9.5, 1] },
+      });
+      // Hovered pin, drawn on top in the hover colours. Icon images are
+      // layout properties, which can't read feature-state, so the hover
+      // state is a filtered copy of the pin layer.
+      map.addLayer({
+        id: 'gallery-pins-hover', type: 'symbol', source: 'galleries',
+        filter: ['==', ['get', 'id'], ''],
+        layout: { ...pinLayout, 'icon-image': 'gallery-pin-hover' },
       });
       map.addLayer({
         id: 'gallery-labels', type: 'symbol', source: 'galleries',
@@ -419,8 +485,8 @@ const MapView = () => {
           'text-allow-overlap': false,
         },
         paint: {
-          'text-color':      '#1a1a2e',
-          'text-halo-color': 'rgba(255,255,255,0.95)',
+          'text-color':      '#241b12',
+          'text-halo-color': 'rgba(246,239,226,0.95)',
           'text-halo-width': 2.5,
           'text-opacity':    ['interpolate', ['linear'], ['zoom'], 12, 0, 13, 1],
         },
@@ -466,13 +532,19 @@ const MapView = () => {
         }
       });
 
-      map.on('mouseenter', 'gallery-pins', () => (map.getCanvas().style.cursor = 'pointer'));
-      map.on('mouseleave', 'gallery-pins', () => (map.getCanvas().style.cursor = ''));
+      map.on('mousemove', 'gallery-pins', (e) => {
+        map.getCanvas().style.cursor = 'pointer';
+        map.setFilter('gallery-pins-hover', ['==', ['get', 'id'], e.features[0].properties.id]);
+      });
+      map.on('mouseleave', 'gallery-pins', () => {
+        map.getCanvas().style.cursor = '';
+        map.setFilter('gallery-pins-hover', ['==', ['get', 'id'], '']);
+      });
 
       setMapReady(true);
     });
 
-    return () => { map.remove(); setMapReady(false); };
+    return () => { resizeObserver.disconnect(); map.remove(); setMapReady(false); };
   }, []); // map is created once; live galleries are read via galleriesRef
 
   // ── Sync region filter and layer visibility with map ──────
