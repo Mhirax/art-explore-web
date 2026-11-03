@@ -645,7 +645,7 @@ const MapView = () => {
         {['All', 'Island', 'Mainland'].map((r) => (
           <button
             key={r}
-            className={`${styles.regionBtn} ${activeRegion === r ? styles.regionBtnActive : ''} ${styles[`regionBtn${r}`]}`}
+            className={`${styles.regionBtn} ${activeRegion === r ? styles.regionBtnActive : ''} ${styles[`regionBtn${r}`] ?? ''}`}
             onClick={() => setRegion(r)}
           >
             {r === 'All' ? 'All Lagos' : r}

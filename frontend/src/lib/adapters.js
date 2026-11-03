@@ -80,15 +80,28 @@ const isVaguePlace = (s) =>
   /\d|\(|nigeria|not available|confirmed/i.test(s) ||
   ['island', 'mainland', 'other', 'lagos'].includes(s.toLowerCase());
 
+// Address parts that name a street, building or direction, not a district.
+const STREETISH =
+  /^\d|\b(street|st|road|rd|way|avenue|ave|close|crescent|drive|lane|plot|suite|shop|floor|complex|house|building|theatre|front|university|off|opposite|by|behind)\b/i;
+
 /**
  * The most specific place name for a venue: sub_area from the sheet, else the
- * neighbourhood from its address (postcode dropped), else the region.
+ * district named in its address, else the region.
+ *
+ * Addresses read street → district → city ("385 Herbert Macaulay Way, Yaba,
+ * Lagos 101245"), so they're scanned from the end: the postcode is dropped,
+ * "Lagos" and other vague parts skipped, and the first part that isn't a
+ * street or building is the district. Checking only the last part gave
+ * "Lagos" here, and the card fell back to "Mainland".
  */
 export function placeOf(g) {
   if (!isVaguePlace(g.subArea)) return g.subArea;
-  const fromAddress = g.neighborhood?.replace(/\s+\d{5,6}$/, '');
-  if (!isVaguePlace(fromAddress)) return fromAddress;
-  return g.subArea || g.region;
+  const parts = (g.address ?? '')
+    .split(',')
+    .map((p) => p.trim().replace(/\s+\d{5,6}$/, ''))
+    .reverse();
+  const district = parts.find((p) => !isVaguePlace(p) && !STREETISH.test(p));
+  return district || g.subArea || g.region;
 }
 
 /** Map a list of institutions. */
