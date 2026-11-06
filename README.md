@@ -33,6 +33,33 @@ Architecture is strictly layered: **Route → Controller → Service → Prisma*
 
 ## Getting Started
 
+### Quick start (local, Mac / Windows / Linux — no cloud accounts needed)
+
+Needs Node.js 20+ and Docker Desktop. Run from the repo root:
+
+```bash
+git checkout dev && git pull
+cp .env.example .env                       # local-only settings, nothing to fill in
+docker compose up -d                       # Postgres + Redis
+npm install && (cd frontend && npm install)
+npx prisma migrate deploy                  # create the tables
+npm run seed                               # admin account + all galleries from the CSV
+npx ts-node scripts/tags-2026-11.ts --apply   # the 9 homepage tags (safe to re-run)
+npm run dev                                # API on http://localhost:4555  (terminal 1)
+cd frontend && npm run dev                 # site on http://localhost:5173 (terminal 2)
+```
+
+Log in to the admin panel at `http://localhost:5173/admin` with the `SEED_SUPER_ADMIN_*` email and password from `.env`.
+
+**Photos:** the seed does not import images, so a fresh local database shows galleries without photos. The
+homepage tag cards only appear once at least one tagged space has a photo. Add photos in the admin panel
+(needs real `AWS_*` values in `.env`), or ask a teammate for a database dump and restore it with `pg_restore`.
+
+**After every `git pull`:** run `npm install` if `package.json` changed and `npx prisma migrate deploy`
+if there are new folders in `prisma/migrations/`.
+
+The detailed steps below explain each part (and how to point at a real Postgres / Upstash / S3 instead).
+
 ### 1. Prerequisites
 - Node.js 20 LTS
 - A PostgreSQL database
