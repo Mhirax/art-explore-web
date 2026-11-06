@@ -181,7 +181,8 @@ export interface Tag {
   id: string;
   name: string;
   label: string;
-  category: string;
+  /** Not shown or edited any more; kept because the API still returns it. */
+  category?: string;
 }
 
 /** Mirrors prisma/schema.prisma `model SubCategory`. */

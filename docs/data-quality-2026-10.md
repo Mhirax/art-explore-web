@@ -13,7 +13,7 @@ it after the `20261030120000_finalise_institution_types` migration).
 | Duplicates | **J. Randle Centre** renamed to the sheet's **John Randle Centre** (live row kept: it has the images). **Art House Foundation** merged into **Arthouse Contemporary** (same website, phone and address): images, exhibitions and reviews moved, duplicate soft-deleted. |
 | Type / subType | 16 entries corrected to match the sheet: 7 festivals → `ART_FESTIVAL`; Obodo, Lagos Gallery Weekend, FF Projects, Fresco Gallery → `NOMADIC_SPACE`; 4 admin-added galleries given subType `ART_GALLERY`; John Randle Centre → Hub / `MUSEUM`. |
 | Opening hours | Yenwa Gallery and Angels and Muse filled in from the venue's own website. Existing hours were checked: all 58 that also appear in the sheet match it. |
-| Tags | `BY_APPOINTMENT`: G.A.S., Polygon, Yusuf Grillo Museum, The Treehouse. `ONLINE`: Awizzy Online Art Gallery. `LIVE_EXHIBITION`: kept in step with `hasExhibition` (16by16). |
+| Tags | Handled separately: the tag list and assignments are owned by `scripts/tags-2026-11.ts` (run it after this script). |
 | Address | G.A.S. address filled in from guestartistsspace.com. |
 
 ## Not changed — needs the client
@@ -52,7 +52,6 @@ number and coordinates.
 same point. The sheet has no coordinates for them; they need real locations or a
 decision to show them off-map.
 
-**Style and curation tags** (Contemporary, Photography, Our Picks, Featured…)
-and **sub-categories** are unassigned on every entry. These are editorial
-choices for the client. Sub-categories now overlap with `subType`, so the
-client should decide whether the sub-category list is still needed.
+**Sub-categories** are unassigned on every entry. They now overlap with
+`subType`, so the client should decide whether the sub-category list is still
+needed. (Tags: see `scripts/tags-2026-11.ts`.)

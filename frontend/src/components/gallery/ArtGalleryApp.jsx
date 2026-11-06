@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./ArtGalleryApp.scss";
 import { useGalleries } from "../../hooks/useGalleries"; // ← live data from the API
 import { formatInstitutionType, INSTITUTION_TYPES } from "../../admin/institutionShared";
@@ -422,7 +423,32 @@ function ResultsGrid({ galleries, searchQuery }) {
 
 export default function ArtGalleryApp() {
   const { galleries, loading, error, reload } = useGalleries();
-  const F = useGalleryFilters(galleries);
+
+  // /galleries?tag=WOMEN_OWNED — arrived from a homepage tag card. The data is
+  // narrowed first, so the type-tab counts describe the tagged spaces too.
+  const [params, setParams] = useSearchParams();
+  const tagName = params.get("tag");
+  const tagLabel = useMemo(() => {
+    if (!tagName) return null;
+    for (const g of galleries) {
+      const hit = g.tags?.find((t) => t.name === tagName);
+      if (hit) return hit.label;
+    }
+    // Nobody carries it yet: show the slug as words rather than nothing.
+    return tagName.toLowerCase().replace(/_/g, " ");
+  }, [galleries, tagName]);
+  const tagged = useMemo(
+    () => (tagName ? galleries.filter((g) => g.tags?.some((t) => t.name === tagName)) : galleries),
+    [galleries, tagName],
+  );
+  const clearTag = () =>
+    setParams((p) => {
+      const next = new URLSearchParams(p);
+      next.delete("tag");
+      return next;
+    });
+
+  const F = useGalleryFilters(tagged);
   return (
     <div className="galleries" id="galleries">
       <header className="app__hero">
@@ -436,6 +462,14 @@ export default function ArtGalleryApp() {
         searchQuery={F.searchQuery}
         setSearchQuery={F.setSearchQuery}
       />
+      {tagName && (
+        <p className="tag-chip-row">
+          Showing spaces tagged
+          <button type="button" className="tag-chip" onClick={clearTag} aria-label={`Remove the ${tagLabel} filter`}>
+            {tagLabel} <span aria-hidden="true">×</span>
+          </button>
+        </p>
+      )}
       <CategoryTabs
         activeTab={F.activeTab}
         setActiveTab={F.setActiveTab}

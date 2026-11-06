@@ -189,13 +189,14 @@ const options: swaggerJsdoc.Options = {
         },
         TagInput: {
           type: 'object',
-          required: ['name', 'category'],
+          required: ['name'],
           properties: {
             name: { type: 'string' },
             label: { type: 'string', description: 'Defaults to name if omitted' },
             category: {
               type: 'string',
               enum: ['OWNERSHIP', 'STYLE', 'CURATION', 'FORMAT'],
+              description: 'Deprecated and hidden in the admin; defaults to STYLE',
             },
           },
         },

@@ -21,6 +21,7 @@ import {
   UploadCloud,
   FileCheck2,
   Star,
+  Tags,
 } from "lucide-react";
 import { adminApi, Pagination } from "../api";
 import {
@@ -110,6 +111,7 @@ const emptyForm = {
   notes: "",
   hasResidency: false,
   hasSocial: false,
+  tagIds: [] as string[],
 };
 
 type InstitutionForm = typeof emptyForm;
@@ -174,6 +176,8 @@ function toApiPayload(form: InstitutionForm, hours: Record<string, DayRow>): Rec
     lng: Number(form.lng),
     hasResidency: form.hasResidency,
     hasSocial: form.hasSocial,
+    // Always sent, so unticking every tag removes them all (update replaces the set).
+    tagIds: form.tagIds,
   };
 
   // Optional strings: omit when blank. Sending "" fails `.url()` and `.email()`,
@@ -244,9 +248,9 @@ export function InstitutionsPage() {
   // instead of just whatever page happened to be open).
   const [allItems, setAllItems] = useState<Institution[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
-  // Every defined tag, for the filter dropdown — deliberately not derived from
-  // allItems: there is no UI yet to attach tags to an institution, so scanning
-  // institutions for their tags would always come up empty.
+  // Every defined tag: feeds the filter dropdown and the tag picker in the
+  // form. Deliberately not derived from allItems — a tag nobody has yet would
+  // never show up there, and it could not be picked.
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -365,21 +369,12 @@ export function InstitutionsPage() {
     return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, [allItems]);
 
-  // Sourced from allTags (every tag that exists), not from allItems' attached
-  // tags — there is no admin UI yet to attach a tag to an institution, so the
-  // latter would always be empty. Grouped by category to match TagsPage.tsx.
-  const tagOptionsByCategory = useMemo(() => {
-    const byCategory = new Map<string, Tag[]>();
-    allTags.forEach((tag) => {
-      const list = byCategory.get(tag.category) || [];
-      list.push(tag);
-      byCategory.set(tag.category, list);
-    });
-    byCategory.forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-    return Array.from(byCategory, ([category, tags]) => ({ category, tags })).sort((a, b) =>
-      a.category.localeCompare(b.category),
-    );
-  }, [allTags]);
+  // Every tag that exists, A–Z. Tags aren't grouped any more (Category is
+  // gone from the Tags page), so the filter and the form picker share one list.
+  const sortedTags = useMemo(
+    () => [...allTags].sort((a, b) => a.label.localeCompare(b.label)),
+    [allTags],
+  );
 
   const activeFilterCount = [filterArea, filterSubArea, filterTagId, filterType, filterStatus].filter(
     Boolean,
@@ -449,6 +444,7 @@ export function InstitutionsPage() {
       notes: inst.notes || "",
       hasResidency: Boolean(inst.hasResidency),
       hasSocial: Boolean(inst.hasSocial),
+      tagIds: (inst.tags ?? []).map((t) => t.id),
     });
     setHours(hoursFromApi(inst.openingHours));
     setEditingImages(Array.isArray(inst.images) ? inst.images : []);
@@ -953,6 +949,39 @@ export function InstitutionsPage() {
 
       <div className="admin-form-section">
         <div className="admin-form-section-head">
+          <Tags size={16} />
+          <div>
+            <h3>Tags</h3>
+            <p>Shown on the public site (e.g. the homepage groups). Tick any that apply.</p>
+          </div>
+        </div>
+        {sortedTags.length === 0 ? (
+          <p className="admin-page-note" style={{ marginTop: 0 }}>
+            No tags yet. Create some on the Tags page.
+          </p>
+        ) : (
+          <div className="admin-tag-picker">
+            {sortedTags.map((t) => (
+              <label key={t.id} className="admin-tag-option">
+                <input
+                  type="checkbox"
+                  checked={form.tagIds.includes(t.id)}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      tagIds: e.target.checked ? [...form.tagIds, t.id] : form.tagIds.filter((id) => id !== t.id),
+                    })
+                  }
+                />
+                {t.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="admin-form-section">
+        <div className="admin-form-section-head">
           <FlagsIcon size={16} />
           <div>
             <h3>Flags &amp; internal</h3>
@@ -1043,7 +1072,7 @@ export function InstitutionsPage() {
       </div>
 
       <p className="admin-form-footnote">
-        Fields marked * are required. Sub-category and tags are writable on the API but have no field here yet.
+        Fields marked * are required. Sub-category is writable on the API but has no field here yet.
       </p>
       <div className="admin-form-actions">
         <button className="admin-btn admin-btn-primary" type="submit" disabled={saving}>
@@ -1147,14 +1176,10 @@ export function InstitutionsPage() {
             <label>Tag</label>
             <select value={filterTagId} onChange={(e) => setFilterTagId(e.target.value)}>
               <option value="">All</option>
-              {tagOptionsByCategory.map(({ category, tags }) => (
-                <optgroup key={category} label={category.charAt(0) + category.slice(1).toLowerCase()}>
-                  {tags.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.label}
-                    </option>
-                  ))}
-                </optgroup>
+              {sortedTags.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.label}
+                </option>
               ))}
             </select>
           </div>

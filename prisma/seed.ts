@@ -10,6 +10,7 @@ import {
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
+import { TAG_CATEGORY_DEFAULT, TAG_VOCABULARY } from '../src/config/tags';
 import { parseOpeningHoursCell } from '../src/utils/openingHours';
 
 const prisma = new PrismaClient();
@@ -435,35 +436,17 @@ async function seedSubCategories(): Promise<void> {
   console.log(`✅ Seeded ${subCategories.length} sub-categories`);
 }
 
-/** The v2 predefined tag vocabulary, idempotent by unique name (slug). */
+/** The tag vocabulary (src/config/tags.ts), idempotent by unique name (slug). */
 async function seedTags(): Promise<void> {
-  const tags: { name: string; label: string; category: TagCategory }[] = [
-    { name: 'WOMEN_OWNED', label: 'Women Owned', category: TagCategory.OWNERSHIP },
-    { name: 'ARTIST_LED', label: 'Artist Led', category: TagCategory.OWNERSHIP },
-    { name: 'LIVE_EXHIBITION', label: 'Live Exhibition', category: TagCategory.FORMAT },
-    { name: 'BY_APPOINTMENT', label: 'By Appointment', category: TagCategory.FORMAT },
-    { name: 'ONLINE', label: 'Online', category: TagCategory.FORMAT },
-    { name: 'OUR_PICKS', label: 'Our Picks', category: TagCategory.CURATION },
-    { name: 'NEW_ARRIVAL', label: 'New Arrival', category: TagCategory.CURATION },
-    { name: 'FEATURED', label: 'Featured', category: TagCategory.CURATION },
-    { name: 'CONTEMPORARY', label: 'Contemporary', category: TagCategory.STYLE },
-    { name: 'MODERN', label: 'Modern', category: TagCategory.STYLE },
-    { name: 'PHOTOGRAPHY', label: 'Photography', category: TagCategory.STYLE },
-    { name: 'SCULPTURE', label: 'Sculpture', category: TagCategory.STYLE },
-    { name: 'DIGITAL_ART', label: 'Digital Art', category: TagCategory.STYLE },
-    { name: 'TEXTILE', label: 'Textile & Fabric', category: TagCategory.STYLE },
-    { name: 'MIXED_MEDIA', label: 'Mixed Media', category: TagCategory.STYLE },
-  ];
-
-  for (const tag of tags) {
+  for (const tag of TAG_VOCABULARY) {
     await prisma.tag.upsert({
       where: { name: tag.name },
-      update: { label: tag.label, category: tag.category },
-      create: tag,
+      update: { label: tag.label },
+      create: { ...tag, category: TAG_CATEGORY_DEFAULT },
     });
   }
 
-  console.log(`✅ Seeded ${tags.length} tags`);
+  console.log(`✅ Seeded ${TAG_VOCABULARY.length} tags`);
 }
 
 async function main(): Promise<void> {
