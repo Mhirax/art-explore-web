@@ -10,10 +10,10 @@
  *     and nomadic spaces still filed as cultural spaces or galleries;
  *   - opening hours missing for 45 fixed venues. Hours were researched and only
  *     taken from the venue's own website; everything else is left unset rather
- *     than guessed (see HOURS / BY_APPOINTMENT below for sources);
- *   - no tags on any entry. Only tags provable from the data are assigned
- *     (BY_APPOINTMENT, ONLINE, LIVE_EXHIBITION); style and curation tags are an
- *     editorial call left to the client.
+ *     than guessed (see HOURS below for sources).
+ *
+ * Tags are not touched here — scripts/tags-2026-11.ts owns the tag list and
+ * assignments (run it after this one).
  *
  * Requires the 20261030120000_finalise_institution_types migration (the new
  * InstitutionType values) to have been applied first.
@@ -35,7 +35,6 @@ import {
   InstitutionType,
   Prisma,
   PrismaClient,
-  TagCategory,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -105,29 +104,11 @@ const HOURS: { name: string; hours: OpeningHours; source: string }[] = [
   },
 ];
 
-/** Visits by appointment only — tagged BY_APPOINTMENT, hours stay unset. */
-const BY_APPOINTMENT = [
-  'Guest Artists Space Foundation (GAS)', // guestartistsspace.com: registered visitors, Wed & Fri 12–4pm
-  'Polygon', // sheet: "By appointment only"
-  'Yusuf Grillo Museum', // sheet: "By appointment only"
-  'The Treehouse Lagos', // sheet: "By appointment/programme-based"
-];
-
-/** Named as an online gallery. */
-const ONLINE = ['Awizzy Online Art Gallery'];
-
 /** Field corrections from the venue's own site. */
 const ADDRESSES: [name: string, address: string][] = [
   // guestartistsspace.com library open-day page; the stored value was a placeholder.
   ['Guest Artists Space Foundation (GAS)', '9b Hakeem Dickson Drive, off T.F. Kuboye Road, Oniru, Lagos'],
 ];
-
-/** Same definitions as seedTags() in prisma/seed.ts. */
-const TAGS = {
-  BY_APPOINTMENT: { label: 'By Appointment', category: TagCategory.FORMAT },
-  ONLINE: { label: 'Online', category: TagCategory.FORMAT },
-  LIVE_EXHIBITION: { label: 'Live Exhibition', category: TagCategory.FORMAT },
-} as const;
 
 const log: string[] = [];
 const missing: string[] = [];
@@ -269,58 +250,6 @@ async function addresses(tx: Tx) {
   }
 }
 
-async function tags(tx: Tx) {
-  for (const [name, t] of Object.entries(TAGS)) {
-    await tx.tag.upsert({ where: { name }, update: {}, create: { name, ...t } });
-  }
-
-  const connect = async (tag: keyof typeof TAGS, names: string[]) => {
-    for (const name of names) {
-      const row = await tx.institution.findFirst({
-        where: { name: { equals: name, mode: 'insensitive' }, deletedAt: null },
-        include: { tags: { select: { name: true } } },
-      });
-      if (!row) {
-        missing.push(`tag ${tag}: ${name}`);
-        continue;
-      }
-      if (row.tags.some((t) => t.name === tag)) continue;
-      await tx.institution.update({
-        where: { id: row.id },
-        data: { tags: { connect: { name: tag } } },
-      });
-      note(`tag     "${row.name}": + ${tag}`);
-    }
-  };
-
-  await connect('BY_APPOINTMENT', BY_APPOINTMENT);
-
-  const online = await tx.institution.findMany({
-    where: { deletedAt: null, subType: InstitutionSubType.ONLINE },
-    select: { name: true },
-  });
-  await connect('ONLINE', [...new Set([...ONLINE, ...online.map((r) => r.name)])]);
-
-  // LIVE_EXHIBITION mirrors the hasExhibition flag (kept current by
-  // recompute-has-exhibition.ts) — added where set, removed where not.
-  const withShow = await tx.institution.findMany({
-    where: { deletedAt: null, hasExhibition: true },
-    select: { name: true },
-  });
-  await connect('LIVE_EXHIBITION', withShow.map((r) => r.name));
-  const stale = await tx.institution.findMany({
-    where: { deletedAt: null, hasExhibition: false, tags: { some: { name: 'LIVE_EXHIBITION' } } },
-    select: { id: true, name: true },
-  });
-  for (const row of stale) {
-    await tx.institution.update({
-      where: { id: row.id },
-      data: { tags: { disconnect: { name: 'LIVE_EXHIBITION' } } },
-    });
-    note(`tag     "${row.name}": - LIVE_EXHIBITION (no current exhibition)`);
-  }
-}
-
 /** Thrown at the end of a dry run so the transaction rolls back. */
 class DryRun extends Error {}
 
@@ -336,7 +265,6 @@ async function main(): Promise<void> {
         await types(tx);
         await hours(tx);
         await addresses(tx);
-        await tags(tx);
         if (!APPLY) throw new DryRun();
       },
       { timeout: 60_000 },
