@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../layout/Navbar.jsx';
 import Herosection3 from '../layout/HeroTypographic.jsx';
-import PopularGalleries from '../sections/PopularGalleries.jsx';
+import TagShowcase from '../sections/TagShowcase.jsx';
 import Mapheader from '../Map/LagosMap.jsx';
 import MapView from '../Map/MapView.jsx';
 import Contribute from '../sections/Contribute.jsx';
@@ -12,7 +12,7 @@ import '../../App.jsx';
 /**
  * Home — read top to bottom as a guide to the city:
  *   Hero        — what this is
- *   The range   — popular venues, by kind of space
+ *   The range   — spaces to explore, by tag (Women Owned, Classics…)
  *   Map         — see it laid out
  *   Contribute  — suggest a space that's missing (inline form)
  *
@@ -33,7 +33,7 @@ function App() {
     <div className="app">
       <Navbar />
       <Herosection3 />
-      <PopularGalleries />
+      <TagShowcase />
       <Mapheader />
       <MapView />
       <Contribute />
