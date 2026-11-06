@@ -23,6 +23,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
+    "db:restore": "node scripts/db-restore.js",
     "prisma:studio": "prisma studio",
     "seed": "prisma db seed",
     "sync:s3-images": "ts-node scripts/sync-s3-images-to-db.ts",
