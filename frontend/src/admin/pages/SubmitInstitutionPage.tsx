@@ -210,18 +210,10 @@ export function SubmitInstitutionPage() {
     loadSubCategories();
   }, []);
 
-  const tagsByCategory = useMemo(() => {
-    const byCategory = new Map<string, Tag[]>();
-    allTags.forEach((tag) => {
-      const list = byCategory.get(tag.category) || [];
-      list.push(tag);
-      byCategory.set(tag.category, list);
-    });
-    byCategory.forEach((list) => list.sort((a, b) => a.label.localeCompare(b.label)));
-    return Array.from(byCategory, ([category, tags]) => ({ category, tags })).sort((a, b) =>
-      a.category.localeCompare(b.category),
-    );
-  }, [allTags]);
+  const sortedTags = useMemo(
+    () => [...allTags].sort((a, b) => a.label.localeCompare(b.label)),
+    [allTags],
+  );
 
   const subCategoryOptions = useMemo(
     () => allSubCategories.filter((sc) => sc.type === form.type),
@@ -599,17 +591,15 @@ export function SubmitInstitutionPage() {
 
           <hr className="admin-form-divider" />
           <strong>Tags</strong>
-          {tagsByCategory.length === 0 && <p className="admin-page-note">No tags defined yet.</p>}
-          {tagsByCategory.map(({ category, tags }) => (
-            <div key={category} className="admin-form-row">
-              <label>{category.charAt(0) + category.slice(1).toLowerCase()}</label>
-              {tags.map((t) => (
-                <label key={t.id} style={{ display: "block", fontWeight: "normal" }}>
-                  <input type="checkbox" checked={tagIds.includes(t.id)} onChange={() => toggleTag(t.id)} /> {t.label}
-                </label>
-              ))}
-            </div>
-          ))}
+          {sortedTags.length === 0 && <p className="admin-page-note">No tags defined yet.</p>}
+          <div className="admin-tag-picker">
+            {sortedTags.map((t) => (
+              <label key={t.id} className="admin-tag-option">
+                <input type="checkbox" checked={tagIds.includes(t.id)} onChange={() => toggleTag(t.id)} />
+                {t.label}
+              </label>
+            ))}
+          </div>
 
           <hr className="admin-form-divider" />
           <strong>Opening hours</strong>
