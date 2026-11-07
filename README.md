@@ -53,13 +53,18 @@ cd frontend && npm run dev                 # site on http://localhost:5173 (term
 Do **not** run `npm run seed` after restoring: it overwrites curated gallery data with the CSV values.
 Admin panel: `http://localhost:5173/admin`, login `admin@artexplore.local` / `ChangeMe123!` (from the dump).
 
-**Day to day** (after the first-time setup above): open Docker Desktop, then run `npm run dev:all` from the repo
-root. It starts the API and the website together in one terminal (Ctrl+C stops both). If the database containers
-are stopped, run `docker start art-explore-db art-explore-redis art-explore-srh` first (or set them to restart
-automatically once with `docker update --restart unless-stopped art-explore-db art-explore-redis art-explore-srh`).
-Only run `npm install` when `package.json` changed in a pull, and `npx prisma migrate deploy` when a pull added a
-folder under `prisma/migrations/`. On Windows, stop any running backend before starting a new one, otherwise
-`prisma generate` fails with `EPERM`.
+**Day to day** (after the first-time setup above): open Docker Desktop, then from the repo root:
+
+```bash
+git pull
+npm run update      # npm install (root + frontend) + prisma migrate deploy; seconds when nothing changed
+npm run dev:all     # API + website together in one terminal (Ctrl+C stops both)
+```
+
+`npm run update` never deletes data: migrations only add or alter tables. If the database containers are stopped,
+run `docker start art-explore-db art-explore-redis art-explore-srh` first (or set them to restart automatically
+once with `docker update --restart unless-stopped art-explore-db art-explore-redis art-explore-srh`).
+On Windows, stop any running backend before starting a new one, otherwise `prisma generate` fails with `EPERM`.
 
 **Option B — from scratch, no dump.**
 
