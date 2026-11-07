@@ -12,6 +12,7 @@
   "scripts": {
     "predev": "prisma generate",
     "dev": "kill-port 4555 && ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:all": "concurrently -k -n api,web -c blue,magenta \"npm run dev\" \"npm run dev --prefix frontend\"",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "vitest run",
@@ -69,6 +70,7 @@
     "@types/swagger-ui-express": "^4.1.6",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
+    "concurrently": "^9.1.2",
     "dotenv": "^17.4.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
