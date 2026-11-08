@@ -4,10 +4,13 @@ import "./ArtGalleryApp.scss";
 import { useGalleries } from "../../hooks/useGalleries"; // ← live data from the API
 import { formatInstitutionType, INSTITUTION_TYPES } from "../../admin/institutionShared";
 
-// "All" plus one tab per InstitutionType, labelled as everywhere else.
+// "All" plus one tab per InstitutionType, labelled as everywhere else, then a
+// "Tags" header tab. Its sub-tags (Women Owned, Classics, ...) open underneath it.
+const TAGS_TAB = "tags";
 const TABS = [
   { id: "all", label: "All", type: null },
   ...INSTITUTION_TYPES.map((type) => ({ id: type, label: formatInstitutionType(type), type })),
+  { id: TAGS_TAB, label: "Tags", type: null },
 ];
 
 const SORT_OPTIONS = [
@@ -52,8 +55,23 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 }
 
 function countForTab(tab, data) {
+  // The Tags tab counts the spaces that carry at least one real tag.
+  if (tab.id === TAGS_TAB) return data.filter((g) => g.tags?.length > 0).length;
   if (!tab.type) return data.length;
   return data.filter((g) => g.type === tab.type).length;
+}
+
+// The tags actually in use, A to Z, each with how many spaces carry it.
+function tagOptionsOf(data) {
+  const byName = new Map();
+  for (const g of data) {
+    for (const t of g.tags ?? []) {
+      const entry = byName.get(t.name) ?? { name: t.name, label: t.label, count: 0 };
+      entry.count += 1;
+      byName.set(t.name, entry);
+    }
+  }
+  return [...byName.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
 
 function placeholderColor(name) {
@@ -79,9 +97,9 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function useGalleryFilters(data) {
+function useGalleryFilters(data, { tagName = null, initialTab = "all" } = {}) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [sortBy, setSortBy] = useState("name");
   const [nearMe, setNearMe] = useState(false);
   const [openNow, setOpenNow] = useState(false);
@@ -130,6 +148,12 @@ function useGalleryFilters(data) {
 
     const tab = TABS.find((t) => t.id === activeTab);
     if (tab?.type) result = result.filter((g) => g.type === tab.type);
+    // Tags tab: every space with a real tag, or just the picked sub-tag.
+    if (activeTab === TAGS_TAB) {
+      result = result.filter((g) =>
+        tagName ? g.tags?.some((t) => t.name === tagName) : g.tags?.length > 0,
+      );
+    }
 
     if (openNow) result = result.filter((g) => isOpenNow(g.hours));
     if (topRated) result = result.filter((g) => g.rating >= 4.0);
@@ -146,6 +170,7 @@ function useGalleryFilters(data) {
     dataWithDistance,
     searchQuery,
     activeTab,
+    tagName,
     openNow,
     topRated,
     nearMe,
@@ -246,24 +271,48 @@ function SearchBox({ searchQuery, setSearchQuery }) {
   );
 }
 
-function CategoryTabs({ activeTab, setActiveTab, rawData }) {
+function CategoryTabs({ activeTab, setActiveTab, rawData, tagOptions, activeTag, setActiveTag }) {
+  const tagsOpen = activeTab === TAGS_TAB;
   return (
-    <div className="tabs" role="tablist">
-      {/* A type with no venues yet gets no tab (unless it is the one selected). */}
-      {TABS.filter(
-        (tab) => !tab.type || tab.id === activeTab || countForTab(tab, rawData) > 0,
-      ).map((tab) => (
-        <button
-          key={tab.id}
-          role="tab"
-          aria-selected={tab.id === activeTab}
-          className={`tabs__tab ${tab.id === activeTab ? "tabs__tab--active" : ""}`}
-          onClick={() => setActiveTab(tab.id)}
-        >
-          {tab.label} ({countForTab(tab, rawData)})
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="tabs" role="tablist">
+        {/* A type (or Tags) with no spaces yet gets no tab, unless it is the one selected. */}
+        {TABS.filter(
+          (tab) => tab.id === "all" || tab.id === activeTab || countForTab(tab, rawData) > 0,
+        ).map((tab) => (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={tab.id === activeTab}
+            {...(tab.id === TAGS_TAB ? { "aria-expanded": tagsOpen, "aria-controls": "sub-tags" } : {})}
+            className={`tabs__tab ${tab.id === activeTab ? "tabs__tab--active" : ""}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label} ({countForTab(tab, rawData)})
+            {tab.id === TAGS_TAB && (
+              <span className="tabs__caret" aria-hidden="true">
+                ▾
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      {tagsOpen && (
+        <div className="subtabs" id="sub-tags" role="group" aria-label="Filter by tag">
+          {tagOptions.map((tag) => (
+            <button
+              key={tag.name}
+              type="button"
+              className={`chip ${tag.name === activeTag ? "chip--on" : ""}`}
+              aria-pressed={tag.name === activeTag}
+              onClick={() => setActiveTag(tag.name === activeTag ? null : tag.name)}
+            >
+              {tag.label} ({tag.count})
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -351,6 +400,9 @@ function FilterRow({
 
 function GalleryCard({ gallery }) {
   const open = isOpenNow(gallery.hours);
+  // Real tags only, A to Z. A space with none shows no tag chip at all, so the
+  // ones that carry a researched tag stand out.
+  const tags = [...(gallery.tags ?? [])].sort((a, b) => a.label.localeCompare(b.label));
   return (
     <div className="gallery-card">
       <div
@@ -373,10 +425,16 @@ function GalleryCard({ gallery }) {
         <p className="card__neighborhood">{gallery.neighborhood}</p>
         {/* Show address from merged data */}
         {gallery.address && <p className="card__address">{gallery.address}</p>}
-        <div className="card__tags">
-          <span className="card__tag">{gallery.typeLabel}</span>
-          {gallery.hasExhibition && <span className="card__tag">Exhibition</span>}
-        </div>
+        {(tags.length > 0 || gallery.hasExhibition) && (
+          <div className="card__tags">
+            {tags.map((t) => (
+              <span key={t.name} className="card__tag">
+                {t.label}
+              </span>
+            ))}
+            {gallery.hasExhibition && <span className="card__tag">Exhibition</span>}
+          </div>
+        )}
         {gallery.rating != null && (
           <div className="card__rating">
             <div className="card__stars">
@@ -424,31 +482,47 @@ function ResultsGrid({ galleries, searchQuery }) {
 export default function ArtGalleryApp() {
   const { galleries, loading, error, reload } = useGalleries();
 
-  // /galleries?tag=WOMEN_OWNED — arrived from a homepage tag card. The data is
-  // narrowed first, so the type-tab counts describe the tagged spaces too.
+  // /galleries?tag=WOMEN_OWNED — arrived from a homepage tag card, or picked from the
+  // sub-tags under the "Tags" tab. The URL keeps the pick, so the link can be shared.
   const [params, setParams] = useSearchParams();
   const tagName = params.get("tag");
-  const tagLabel = useMemo(() => {
-    if (!tagName) return null;
-    for (const g of galleries) {
-      const hit = g.tags?.find((t) => t.name === tagName);
-      if (hit) return hit.label;
-    }
-    // Nobody carries it yet: show the slug as words rather than nothing.
-    return tagName.toLowerCase().replace(/_/g, " ");
-  }, [galleries, tagName]);
-  const tagged = useMemo(
-    () => (tagName ? galleries.filter((g) => g.tags?.some((t) => t.name === tagName)) : galleries),
-    [galleries, tagName],
-  );
-  const clearTag = () =>
-    setParams((p) => {
-      const next = new URLSearchParams(p);
-      next.delete("tag");
-      return next;
-    });
+  const F = useGalleryFilters(galleries, {
+    tagName,
+    initialTab: tagName ? TAGS_TAB : "all",
+  });
+  const { setActiveTab } = F;
+  useEffect(() => {
+    if (tagName) setActiveTab(TAGS_TAB);
+  }, [tagName, setActiveTab]);
 
-  const F = useGalleryFilters(tagged);
+  const setTag = (name) =>
+    setParams(
+      (p) => {
+        const next = new URLSearchParams(p);
+        if (name) next.set("tag", name);
+        else next.delete("tag");
+        return next;
+      },
+      { replace: true },
+    );
+  // Any tab other than Tags drops the tag pick.
+  const chooseTab = (id) => {
+    setActiveTab(id);
+    if (id !== TAGS_TAB) setTag(null);
+  };
+  const resetAll = () => {
+    F.resetAllFilters();
+    setTag(null);
+  };
+
+  const tagOptions = useMemo(() => {
+    const options = tagOptionsOf(galleries);
+    // A tag nobody carries yet (a shared link to it) still shows, so it can be switched off.
+    if (tagName && !options.some((o) => o.name === tagName)) {
+      options.push({ name: tagName, label: tagName.toLowerCase().replace(/_/g, " "), count: 0 });
+    }
+    return options;
+  }, [galleries, tagName]);
   return (
     <div className="galleries" id="galleries">
       <header className="app__hero">
@@ -462,18 +536,13 @@ export default function ArtGalleryApp() {
         searchQuery={F.searchQuery}
         setSearchQuery={F.setSearchQuery}
       />
-      {tagName && (
-        <p className="tag-chip-row">
-          Showing spaces tagged
-          <button type="button" className="tag-chip" onClick={clearTag} aria-label={`Remove the ${tagLabel} filter`}>
-            {tagLabel} <span aria-hidden="true">×</span>
-          </button>
-        </p>
-      )}
       <CategoryTabs
         activeTab={F.activeTab}
-        setActiveTab={F.setActiveTab}
+        setActiveTab={chooseTab}
         rawData={F.rawData}
+        tagOptions={tagOptions}
+        activeTag={tagName}
+        setActiveTag={setTag}
       />
       <FilterRow
         nearMe={F.nearMe}
@@ -485,7 +554,7 @@ export default function ArtGalleryApp() {
         sortBy={F.sortBy}
         setSortBy={F.setSortBy}
         hasActiveFilters={F.hasActiveFilters}
-        resetAllFilters={F.resetAllFilters}
+        resetAllFilters={resetAll}
         resultCount={F.resultCount}
       />
       {loading ? (

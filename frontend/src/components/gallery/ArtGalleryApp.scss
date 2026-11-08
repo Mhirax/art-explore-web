@@ -187,6 +187,29 @@
   @include focus-ring(var(--terracotta), -2px);
 }
 
+// The "Tags" header tab: a small arrow shows there are sub-tags underneath.
+.tabs__caret {
+  display:     inline-block;
+  margin-left: 6px;
+  font-size:   10px;
+  transition:  transform 0.15s var(--ease-out);
+}
+
+.tabs__tab--active .tabs__caret { transform: rotate(180deg); }
+
+// The sub-tags that open under the "Tags" tab (Women Owned, Classics, ...).
+.subtabs {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       8px;
+  padding:   16px 0 0;
+
+  @media (max-width: 480px) {
+    gap:     6px;
+    padding: 12px 0 0;
+  }
+}
+
 // ─── Filter row ─────────────────────────────────────────────────
 .filter-row {
   display:         flex;
@@ -428,7 +451,7 @@
 
 .card__tag {
   font-size:      11px;
-  text-transform: capitalize;
+  text-transform: none; // tag labels keep their own capitals ("Recently established")
   color:          var(--ink);
   border:         1px solid var(--rule);
   border-radius:  2px;
@@ -501,33 +524,4 @@
 .empty__retry {
   @include btn-secondary;
   margin-top: 20px;
-}
-
-// "Showing spaces tagged [Women Owned ×]" — set when a homepage tag card is followed.
-.tag-chip-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 14px;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-.tag-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: var(--terracotta);
-  color: var(--cream);
-  border: 1px solid var(--terracotta);
-  border-radius: 2px;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover { background: var(--terracotta-press); border-color: var(--terracotta-press); }
-  &:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }

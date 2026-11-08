@@ -20,13 +20,25 @@ a later tidy-up.
 The homepage section **Find your kind of space** shows six of the tags as swipeable photo cards: Women Owned,
 Affordable Art, Children Focused, Workshops & Classes, Recently established, Classics.
 
-- A card links to `/galleries?tag=<SLUG>`, the directory filtered to that tag.
+- A card links to `/galleries?tag=<SLUG>`: the directory opens on its **Tags** tab with that sub-tag picked.
 - Its cover is a photo of one of the spaces carrying the tag. `COVER_PREFERENCE` in
   `frontend/src/components/sections/TagShowcase.jsx` names the preferred space per tag, falling back to the
   first tagged space that has a photo.
 - A tag nobody carries yet gets no card. If none do, the whole section is hidden.
 - Residencies, Weekly Features and Live Exhibition aren't on the homepage; they're for the directory and
   admin.
+
+## In the directory
+
+The directory page (`/galleries`) uses the same tags:
+
+- **Cards** show each space's real tags (A to Z) instead of its type. A space with no real tag shows no chip, so the
+  tagged ones stand out. (The small "Exhibition" chip for a space with a live exhibition is unchanged.)
+- A **Tags** header tab sits beside All, Art Gallery, Museum and the other type tabs. It counts the spaces that carry at
+  least one tag. Choosing it opens a row of sub-tags (only the tags in use, with counts); picking one narrows the list,
+  picking it again clears it.
+- The pick lives in the URL as `?tag=<SLUG>`, so a homepage tag card, or a shared link, opens the Tags tab with that
+  sub-tag already picked.
 
 ## Releasing to production
 
